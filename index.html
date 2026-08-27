@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosco EverTune Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f7f9;--bg2:#eef0f3;--card:#fff;--card2:#f7f8fa;--line:#e3e6ea;--line2:#d3d8de;
+  --ink:#14171c;--ink2:#3d444e;--muted:#828b98;--accent:#0f8d80;--accent2:#0b6f65;
+  --accent-soft:#e4f6f3;--dim:#b8701a;--dim-soft:#fdf3e4;--bad:#c0392b;--bad-soft:#fbecea;
+  --good:#1c8149;--good-soft:#e8f6ee;--shadow:0 1px 2px rgba(16,20,26,.05),0 8px 24px -12px rgba(16,20,26,.12);
+}
+body.dark{
+  --bg:#0d1014;--bg2:#0a0c0f;--card:#171b21;--card2:#1e232b;--line:#282e37;--line2:#333a45;
+  --ink:#e9ecef;--ink2:#b9c0ca;--muted:#7d8794;--accent:#2cd5c4;--accent2:#22b3a5;
+  --accent-soft:#12312e;--dim:#e0a445;--dim-soft:#2e2512;--bad:#ff6f5e;--bad-soft:#341a17;
+  --good:#43cc7f;--good-soft:#122a1c;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 30px -14px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);
+  min-height:100vh;line-height:1.55;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s;
+  overflow-x:hidden;}
+.cond{font-family:'Barlow Condensed',system-ui,sans-serif;}
+
+/* ---------- chrome ---------- */
+.bar{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+.bar .in{max-width:840px;margin:0 auto;padding:11px 18px;display:flex;align-items:center;gap:8px;}
+@media(max-width:480px){
+  .bar .in{padding:10px 14px;gap:6px;}
+  .logo{font-size:16px;}
+  .icb{padding:6px 9px;font-size:11px;}
+  .icb .lg{display:none;}
+  .icb .sm-only{display:inline !important;font-weight:700;}
+}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.02em;white-space:nowrap;cursor:pointer;background:none;border:none;color:var(--ink);padding:0;}
+.logo .a{color:var(--accent);}
+.spacer{flex:1;}
+.icb{background:transparent;border:1px solid var(--line);color:var(--muted);font-size:11.5px;font-weight:600;
+  padding:6px 11px;border-radius:99px;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap;}
+.icb:hover{border-color:var(--accent);color:var(--accent);}
+.icb.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+body.dark .icb.on{color:#07302c;}
+.icb .badge{display:inline-block;background:var(--dim);color:#fff;border-radius:99px;font-size:9.5px;
+  padding:0 5px;margin-left:4px;font-weight:700;vertical-align:1px;}
+body.dark .icb .badge{color:#1a1a1a;}
+
+/* ---------- answer bar ---------- */
+.abar{border-bottom:1px solid var(--line);background:var(--bg2);}
+.abar .aw{max-width:840px;margin:0 auto;padding:7px 18px;display:flex;gap:7px;overflow-x:auto;
+  scrollbar-width:none;align-items:stretch;}
+.abar .aw::-webkit-scrollbar{display:none;}
+@media(max-width:480px){.abar .aw{padding:6px 14px;}}
+.ac{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:5px 9px;
+  display:flex;flex-direction:column;justify-content:center;min-width:0;transition:.13s;}
+.ac.btn{cursor:pointer;font-family:inherit;text-align:left;}
+.ac.btn:hover{border-color:var(--accent);}
+.ac .al{font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);line-height:1.3;white-space:nowrap;}
+.ac .av{font-size:13px;font-weight:600;line-height:1.3;white-space:nowrap;color:var(--ink);}
+.ac .av .sec{color:var(--muted);font-weight:400;font-size:11px;}
+.ac input{background:transparent;border:none;color:var(--ink);font-family:inherit;font-size:13px;
+  font-weight:600;width:52px;padding:0;}
+.ac input:focus{outline:none;color:var(--accent);}
+.ac.cur{border-color:var(--accent);background:var(--accent-soft);}
+
+/* ---------- range gauge ---------- */
+.gauge{max-width:420px;margin:0 0 20px;}
+.gcap{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.gtrack{position:relative;height:34px;background:var(--card2);border:1px solid var(--line);border-radius:9px;}
+.gwin{position:absolute;top:0;bottom:0;background:var(--accent-soft);border-left:2px solid var(--accent);
+  border-right:2px solid var(--accent);}
+.gmid{position:absolute;top:0;bottom:0;width:1px;background:var(--accent);opacity:.4;}
+.gpin{position:absolute;top:-5px;bottom:-5px;width:2.5px;background:var(--ink);border-radius:2px;transition:left .2s;}
+.gpin.out{background:var(--bad);}
+.glab{position:relative;height:15px;margin-top:5px;font-size:10.5px;color:var(--muted);}
+.glab span{position:absolute;white-space:nowrap;transform:translateX(-50%);}
+.glab .lo,.glab .hi{color:var(--accent);font-weight:600;}
+.gnow{font-size:12.5px;margin-top:7px;color:var(--muted);}
+.gnow b{color:var(--ink);font-weight:600;}
+.gnow .bad{color:var(--bad);font-weight:600;} .gnow .ok{color:var(--accent);font-weight:600;}
+
+/* ---------- riser calc ---------- */
+.rc{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:16px;margin:6px 0 20px;}
+.rc .rr{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px;}
+.rc .rr:last-child{border-bottom:none;}
+.rc .rr .k{color:var(--muted);}
+.rc .rr .v{font-weight:600;font-variant-numeric:tabular-nums;}
+.rc .big{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:11px;padding:13px 15px;margin-top:12px;}
+.rc .big .k{font-family:'Barlow Condensed',sans-serif;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);font-weight:600;}
+.rc .big .v{font-size:26px;font-weight:600;line-height:1.2;letter-spacing:-.01em;}
+.rc .big .s{font-size:12px;color:var(--muted);margin-top:3px;}
+.rc .big.bad{background:var(--bad-soft);border-color:var(--bad);} .rc .big.bad .k{color:var(--bad);}
+
+/* ---------- inline note ---------- */
+details.tip{margin:-8px 0 20px;}
+details.tip summary{list-style:none;cursor:pointer;font-size:12.5px;color:var(--accent);
+  display:inline-flex;align-items:center;gap:5px;padding:4px 0;}
+details.tip summary::-webkit-details-marker{display:none;}
+details.tip summary .chev{width:13px;height:13px;flex:0 0 13px;transition:transform .2s;}
+details.tip[open] summary .chev{transform:rotate(90deg);}
+details.tip summary:hover{text-decoration:underline;text-underline-offset:3px;}
+details.tip .tb{font-size:12.5px;color:var(--muted);line-height:1.6;background:var(--card2);
+  border-left:3px solid var(--accent);padding:11px 13px;border-radius:0 9px 9px 0;margin-top:7px;max-width:520px;}
+details.tip .tb b{color:var(--ink);font-weight:600;}
+
+/* ---------- progress ---------- */
+.prog{height:2px;background:var(--line);position:relative;overflow:hidden;}
+.prog i{position:absolute;inset:0 auto 0 0;background:var(--accent);width:0;transition:width .45s cubic-bezier(.3,.9,.3,1);}
+
+/* ---------- layout ---------- */
+main{max-width:840px;margin:0 auto;padding:0 18px 90px;}
+.pad{padding-top:34px;}
+@media(max-width:640px){.pad{padding-top:22px;}main{padding:0 14px 80px;}}
+
+/* ---------- step card ---------- */
+.step{animation:in .34s cubic-bezier(.22,.9,.3,1) both;}
+@keyframes in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.step.out{animation:out .16s ease both;}
+@keyframes out{to{opacity:0;transform:translateY(-6px);}}
+.eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:9px;}
+.q{font-family:'Barlow Condensed',sans-serif;font-size:clamp(27px,4.6vw,38px);font-weight:600;line-height:1.12;
+  letter-spacing:-.005em;margin-bottom:9px;}
+.qs{color:var(--muted);font-size:14px;max-width:520px;margin-bottom:24px;}
+.qs b{color:var(--ink2);font-weight:600;}
+
+/* ---------- number input ---------- */
+.numrow{display:flex;align-items:stretch;gap:10px;max-width:340px;margin-bottom:8px;}
+.numbox{flex:1;position:relative;}
+.numbox input{width:100%;background:var(--card);border:1.5px solid var(--line2);color:var(--ink);
+  font-size:34px;font-weight:600;padding:14px 62px 14px 16px;border-radius:13px;font-family:inherit;
+  transition:.15s;letter-spacing:-.01em;}
+.numbox input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);}
+.numbox input::placeholder{color:var(--muted);opacity:.35;font-weight:500;}
+.numbox input::-webkit-outer-spin-button,.numbox input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.numbox input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+.numbox .un{position:absolute;right:15px;top:50%;transform:translateY(-50%);color:var(--muted);
+  font-size:15px;font-weight:600;pointer-events:none;}
+.alt{font-size:13px;color:var(--muted);margin-bottom:20px;min-height:19px;}
+.alt b{color:var(--accent);font-weight:600;}
+
+/* ---------- tiles ---------- */
+.tiles{display:grid;gap:9px;margin-bottom:8px;}
+.tiles.c2{grid-template-columns:1fr 1fr;}
+@media(max-width:560px){.tiles.c2{grid-template-columns:1fr;}}
+.tile{display:flex;align-items:flex-start;gap:12px;text-align:left;background:var(--card);
+  border:1.5px solid var(--line);border-radius:13px;padding:14px 15px;cursor:pointer;font-family:inherit;
+  color:var(--ink);transition:.14s;width:100%;}
+.tile:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
+.tile.sel{border-color:var(--accent);background:var(--accent-soft);}
+.tile .ic{width:34px;height:34px;flex-shrink:0;border-radius:9px;background:var(--card2);display:flex;
+  align-items:center;justify-content:center;color:var(--muted);transition:.14s;}
+.tile.sel .ic{background:var(--accent);color:#fff;} body.dark .tile.sel .ic{color:#07302c;}
+.tile .tb{min-width:0;flex:1;}
+.tile .tb{display:block;}
+.tile .tt{display:block;font-weight:600;font-size:14.5px;line-height:1.35;}
+.tile .td{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.45;}
+.tile.sel .td{color:var(--ink2);}
+
+/* ---------- extra checkbox under a tile group ---------- */
+.xtra{display:flex;gap:11px;align-items:flex-start;background:var(--card);border:1.5px solid var(--line);
+  border-radius:13px;padding:13px 15px;margin-top:9px;cursor:pointer;transition:.14s;}
+.xtra:hover{border-color:var(--line2);}
+.xtra.on{border-color:var(--accent);background:var(--accent-soft);}
+.xtra input{margin-top:2px;width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.xtra .xt{font-weight:600;font-size:14px;line-height:1.35;}
+.xtra .xd{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45;}
+
+/* ---------- picture tiles ---------- */
+.ptiles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:8px;}
+@media(max-width:620px){.ptiles{grid-template-columns:1fr;}}
+.pt{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:0;cursor:pointer;
+  font-family:inherit;color:var(--ink);text-align:left;transition:.14s;overflow:hidden;display:flex;flex-direction:column;}
+.pt:hover{border-color:var(--line2);transform:translateY(-2px);box-shadow:var(--shadow);}
+.pt.sel{border-color:var(--accent);}
+.pt .pic{display:block;background:var(--card2);padding:14px 16px 10px;border-bottom:1px solid var(--line);}
+.pt .pb{display:block;}
+.pt .pt-t,.pt .pt-d{display:block;}
+.pt.sel .pic{background:var(--accent-soft);}
+.pt .pic svg{width:100%;height:auto;display:block;max-height:120px;}
+.pt .pb{padding:13px 15px 15px;}
+.pt .pt-t{font-weight:600;font-size:15px;line-height:1.3;margin-bottom:4px;}
+.pt.sel .pt-t{color:var(--accent);}
+.pt .pt-d{font-size:12.5px;color:var(--muted);line-height:1.5;}
+
+/* ---------- pills ---------- */
+.pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+.pill{background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:11px 20px;
+  cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;color:var(--ink);transition:.14s;min-width:64px;}
+.pill:hover{border-color:var(--line2);}
+.pill.sel{border-color:var(--accent);background:var(--accent);color:#fff;}
+body.dark .pill.sel{color:#07302c;}
+.sublbl{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);margin:22px 0 9px;}
+.sublbl:first-child{margin-top:0;}
+
+/* ---------- diagram ---------- */
+.dg{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:20px;max-width:420px;}
+.dg svg{width:100%;height:auto;display:block;}
+.dg .cp{font-size:11.5px;color:var(--muted);text-align:center;margin-top:9px;}
+
+/* ---------- nav ---------- */
+.nav{display:flex;align-items:center;gap:10px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line);}
+.btn{border:none;border-radius:11px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:16px;letter-spacing:.04em;text-transform:uppercase;padding:13px 26px;transition:.15s;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-sm{font-size:13px;padding:9px 15px;border-radius:9px;}
+.pri{background:var(--accent);color:#fff;} body.dark .pri{color:#06302c;}
+.pri:not(:disabled):hover{background:var(--accent2);}
+.gho{background:transparent;color:var(--muted);border:1.5px solid var(--line);}
+.gho:hover{border-color:var(--accent);color:var(--accent);}
+.lnk{background:none;border:none;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;padding:6px;}
+.lnk:hover{color:var(--accent);}
+.kbd{font-size:11.5px;color:var(--muted);margin-left:auto;}
+.kbd b{background:var(--card2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-weight:600;
+  font-family:ui-monospace,monospace;font-size:10.5px;}
+@media(max-width:560px){.kbd{display:none;}}
+
+/* ---------- verdict ---------- */
+.vd{border-radius:16px;padding:22px 22px;margin-bottom:16px;border:1.5px solid;position:relative;overflow:hidden;}
+.vd.go{background:var(--good-soft);border-color:var(--good);}
+.vd.cond{background:var(--dim-soft);border-color:var(--dim);}
+.vd.no{background:var(--bad-soft);border-color:var(--bad);}
+.vd .vl{font-family:'Barlow Condensed',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:7px;}
+.vd.go .vl{color:var(--good);} .vd.cond .vl{color:var(--dim);} .vd.no .vl{color:var(--bad);}
+.vd .vm{font-family:'Barlow Condensed',sans-serif;font-size:clamp(25px,4.2vw,34px);font-weight:600;line-height:1.13;}
+.vd .vw{font-size:13.5px;color:var(--ink2);margin-top:8px;max-width:600px;}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:9px;margin-bottom:16px;}
+.st{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;}
+.st .k{font-family:'Barlow Condensed',sans-serif;font-size:10.5px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.11em;font-weight:600;margin-bottom:4px;}
+.st .v{font-size:19px;font-weight:600;line-height:1.2;letter-spacing:-.01em;}
+.st .v small{display:block;font-size:11.5px;font-weight:400;color:var(--muted);margin-top:3px;line-height:1.4;letter-spacing:0;}
+.st.hl{border-color:var(--accent);background:var(--accent-soft);} .st.hl .v{color:var(--accent);}
+
+/* ---------- accordion ---------- */
+.acc{border:1px solid var(--line);border-radius:13px;background:var(--card);margin-bottom:9px;overflow:hidden;}
+.acc>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;gap:10px;
+  font-weight:600;font-size:14.5px;user-select:none;}
+.acc>summary::-webkit-details-marker{display:none;}
+.acc>summary:hover{background:var(--card2);}
+.acc>summary .cnt{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:500;}
+.acc>summary .chev{width:15px;height:15px;color:var(--muted);transition:transform .2s;flex-shrink:0;}
+.acc[open]>summary .chev{transform:rotate(90deg);}
+.acc[open]>summary{border-bottom:1px solid var(--line);}
+.acc .body{padding:14px 16px 16px;}
+.acc.warn{border-color:var(--dim);} .acc.warn>summary{color:var(--dim);}
+.acc.stop{border-color:var(--bad);} .acc.stop>summary{color:var(--bad);}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot.d-warn{background:var(--dim);} .dot.d-stop{background:var(--bad);} .dot.d-ok{background:var(--accent);}
+
+/* ---------- msg ---------- */
+.msg{font-size:13px;line-height:1.6;padding:12px 14px;border-radius:10px;margin-bottom:9px;
+  background:var(--card2);border-left:3px solid var(--accent);color:var(--ink2);}
+.msg:last-child{margin-bottom:0;}
+.msg.warn{border-left-color:var(--dim);background:var(--dim-soft);}
+.msg.stop{border-left-color:var(--bad);background:var(--bad-soft);}
+.msg h5{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.msg b{color:var(--ink);font-weight:600;}
+.tier{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;padding:1px 5px;border-radius:4px;vertical-align:1px;margin-left:5px;}
+.tier.ET{background:var(--accent);color:#fff;} body.dark .tier.ET{color:#07302c;}
+.tier.RG{background:var(--muted);color:#fff;}
+.tier.GAP{background:transparent;color:var(--dim);border:1px solid var(--dim);}
+.qflag{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:4px;margin-left:5px;
+  background:var(--dim);color:#fff;cursor:pointer;border:none;vertical-align:1px;}
+body.dark .qflag{color:#1a1a1a;}
+
+/* ---------- fork ---------- */
+.fork{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:620px){.fork{grid-template-columns:1fr;}}
+.fc{background:var(--card2);border:1.5px solid var(--line);border-radius:13px;padding:15px;}
+.fc h4{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;color:var(--accent);margin-bottom:10px;}
+.fc ul{list-style:none;display:grid;gap:7px;}
+.fc li{font-size:12.5px;line-height:1.5;padding-left:16px;position:relative;color:var(--muted);}
+.fc li:before{content:'';position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+.fc li b{color:var(--ink);font-weight:600;}
+
+/* ---------- table ---------- */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--card);}
+table.dp{width:100%;border-collapse:collapse;font-size:13px;min-width:560px;}
+table.dp th{font-family:'Barlow Condensed',sans-serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);font-weight:600;background:var(--card2);}
+table.dp td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top;}
+table.dp tr:last-child td{border-bottom:none;}
+table.dp td.n{font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums;}
+table.dp td.n small{display:block;font-weight:400;color:var(--muted);font-size:10.5px;}
+table.dp td .sub{color:var(--muted);font-size:11px;display:block;margin-top:2px;}
+
+/* ---------- checklist ---------- */
+.ck{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border-radius:10px;transition:.12s;}
+.ck:hover{background:var(--card2);}
+.ck.done{opacity:.45;} .ck.done .ct{text-decoration:line-through;}
+.ck.br{background:var(--dim-soft);}
+.ck input{margin-top:3px;width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.ck .cl{font-family:'Barlow Condensed',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--accent);}
+.ck.br .cl{color:var(--dim);}
+.ck .ct{font-size:13px;line-height:1.55;}
+.ck .cm{font-size:11.5px;color:var(--muted);margin-top:3px;}
+.ck .cm b{color:var(--ink2);}
+
+/* ---------- drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(6,9,12,.5);backdrop-filter:blur(3px);z-index:60;opacity:0;
+  pointer-events:none;transition:opacity .22s;}
+.scrim.on{opacity:1;pointer-events:auto;}
+.drw{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--bg);z-index:61;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.3,.9,.3,1);overflow-y:auto;
+  border-left:1px solid var(--line);}
+.drw{visibility:hidden;}
+.drw.on{transform:none;visibility:visible;}
+.drw .dh{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);padding:16px 20px;
+  display:flex;align-items:center;gap:12px;z-index:2;}
+.drw .dh h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;}
+.drw .dbody{padding:16px 20px 40px;}
+.qi{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px;background:var(--card);}
+.qi.hit{border-color:var(--dim);background:var(--dim-soft);}
+.qi.res{opacity:.5;}
+.qi .qh{display:flex;gap:9px;align-items:baseline;margin-bottom:5px;}
+.qi .qid{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:.06em;}
+.qi.res .qid{color:var(--good);}
+.qi .qb{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:4px;background:var(--card2);color:var(--muted);}
+.qi .qb.b1{background:var(--bad);color:#fff;}
+.qi .qt{font-size:13px;line-height:1.55;}
+.qi .qm{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+.qi .qm .live{color:var(--dim);font-weight:600;}
+.qn{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;
+  padding:8px 10px;border-radius:8px;font-family:inherit;margin-top:9px;resize:vertical;min-height:34px;}
+.qn:focus{outline:none;border-color:var(--accent);}
+.qc{display:flex;gap:7px;align-items:center;font-size:11.5px;color:var(--muted);margin-top:8px;cursor:pointer;}
+.qc input{accent-color:var(--accent);}
+
+/* ---------- misc ---------- */
+.sm{font-size:12.5px;color:var(--muted);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+.chip{background:var(--card2);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:11.5px;
+  color:var(--muted);cursor:pointer;transition:.13s;}
+.chip:hover{border-color:var(--accent);color:var(--accent);}
+.chip b{color:var(--ink);font-weight:600;}
+.h2{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);margin:26px 0 11px;}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--line);}
+.hide{display:none !important;}
+.lock{text-align:center;padding:50px 20px;}
+.lock p{color:var(--muted);font-size:14px;margin-bottom:20px;}
+.lock .r{display:flex;gap:8px;max-width:300px;margin:0 auto;}
+.lock input{flex:1;background:var(--card);border:1.5px solid var(--line2);color:var(--ink);font-size:14px;
+  padding:12px 14px;border-radius:11px;font-family:inherit;}
+.lock input:focus{outline:none;border-color:var(--accent);}
+code{background:var(--card2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;font-size:12px;
+  font-family:ui-monospace,monospace;}
+footer{border-top:1px solid var(--line);margin-top:40px;padding:22px 0 0;text-align:center;color:var(--muted);font-size:11.5px;line-height:1.9;}
+footer a{color:var(--accent);text-decoration:none;}
+@media print{.bar,.nav,.actions,.drw,.scrim,.prog{display:none!important;}body{background:#fff;}
+  .acc{break-inside:avoid;} .acc:not([open]) .body{display:block!important;}}
+</style>
+</head>
+<body class="dark">
+<div class="bar">
+  <div class="in">
+    <button class="logo" id="home">ROSCO <span class="a">EVERTUNE</span></button>
+    <div class="spacer"></div>
+    <button class="icb" id="unitBtn">mm</button>
+    <button class="icb" id="themeBtn">Dark</button>
+    <button class="icb" id="qBtn" title="Open questions"><span class="lg">Questions</span><span aria-hidden="true" style="display:none" class="sm-only">?</span><span class="badge" id="qBadge">0</span></button>
+  </div>
+  <div class="abar hide" id="abar"><div class="aw" id="abarIn"></div></div>
+  <div class="prog"><i id="progBar"></i></div>
+</div>
+
+<main><div class="pad"><div id="view"></div></div>
+
+<footer>
+  Rosco Guitars Ltd. &middot; EverTune accredited installer &middot; <a href="https://roscoguitars.com">roscoguitars.com</a><br>
+  <span class="tier ET">ET</span> published EverTune spec &nbsp; <span class="tier RG">RG</span> Rosco bench practice &nbsp; <span class="tier GAP">GAP</span> not published anywhere<br>
+  Every result is an estimate. Final after in-person inspection.
+</footer>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drw" id="drw">
+  <div class="dh">
+    <h3>Open questions</h3>
+    <div class="spacer"></div>
+    <button class="icb" id="qCopy">Copy</button>
+    <button class="icb" id="qClose">Close</button>
+  </div>
+  <div class="dbody">
+    <p class="sm" style="margin-bottom:16px;">What the tool cannot answer yet. An item turns amber when the guitar you just entered actually depends on it. Notes save in this browser.<br><br><b>Closed 2026-08-27:</b> the F&amp;T string-height window. It is on the overall-dimensions drawing as .350" and .532", not in any text. 8.89 to 13.51mm, midpoint 11.20.</p>
+    <div id="qList"></div>
+    <button class="lnk" id="qClear" style="margin-top:8px;">Clear my notes</button>
+  </div>
+</aside>
+
+<script>
+"use strict";
+const MM = 25.4;
+const EPS = 0.01;   // mm. 1.750in * 25.4 = 44.44999...  float noise must not trip a threshold.
+const lt = (a,b) => a <  b - EPS;   // strictly under, tolerating float noise
+const gte= (a,b) => a >= b - EPS;   // at or over
+const F = {
+  /* ---- ET: published thresholds ---- */
+  MODEL_SPLIT_MM      : 13.51,     // .532" - the real top of the F/T window. Buying Guide rounds it to 13mm / 1/2".
+  F_SH_MIN            : 8.89,      // .350"  F&T minimum string height at the bridge   [ET, ET001FT overall dims]
+  F_SH_MAX            : 13.51,     // .532"  F&T maximum string height at the bridge   [ET, same sheet]
+  F_SH_MID            : 11.20,     // midpoint, the sweet spot to aim a riser at        [RG]
+  RISER_MIN_MM        : 1.0,       // below this there is no stock worth making         [RG]
+  ACTION_LO_MM        : 1.5875,    // .0625" recommended 12th-fret action band, low end  [RG]
+  ACTION_HI_MM        : 1.905,     // .075"  recommended 12th-fret action band, high end [RG]
+  COMBINED_MIN_MM     : 53.29,     // 2.098" F&T limiting dimension for guitar thickness
+  G_COMBINED_TYPICAL  : 60.85,     // 2.396" G limiting dimension, TYPICAL install
+  G_COMBINED_THIN     : 53.16,     // 2.093" G limiting dimension, EXTREMELY THIN guitars
+  E_TO_E_6            : 52.0,      // 2.047" published E-to-e, on both overall-dimension sheets
+  ACTION_DEFAULT_MM   : 1.5875,    // .0625" - assumed, not asked
+  FT_MIN_BODY_MM      : 44.45,     // 1 3/4" F & T minimum before a rear riser
+  G_FOOTPLATE_MM      : 47.63,     // 1 7/8" to recess the footplate without a riser
+  G_STANDARD_MM       : 53.34,     // 2.1" for a standard G with both covers recessed
+  SADDLE_PITCH_MM     : 10.4,      // 0.41" average, saddles float
+  G_LONG_A_MM         : 14.0,      // 0.55" per the Buying Guide
+  G_LONG_B_MM         : 15.88      // 5/8" per the G Model + Installer pages
+};
+
+/* ---- Open questions. id, text, what it blocks, and a live predicate ---- */
+const QUESTIONS = [
+  { id:'Q1', block:'v0.1',
+    t:'G Standard vs G Long threshold. The Buying Guide says 0.55" / 14mm. The G Model page and the Installer Program page both say 5/8" / 15.88mm. Same decision, two different numbers.',
+    m:'Until settled the tool flags anything landing between 14.0 and 15.88mm as ambiguous and shows both calls.',
+    hit: r => r.gLong === 'ambiguous' },
+  { id:'Q2', block:'v0.3', done:true,
+    t:'BOT 4 scope. SETTLED 2026-08-27 from the F&T template instructions, page 07, verbatim: "For \u201cF\u201d routes, this additional template is required."',
+    m:'BOT 4 is F ONLY. The T sequence does not use it. Your Airtable field was right. Tool now shows it only on an F.',
+    hit: r => false },
+  { id:'Q3', block:'v0.3', done:true,
+    t:'Which BOT step takes the two thin spacer templates? SETTLED 2026-08-27 from the same PDF, page 04.',
+    m:'It is BOT 2. Verbatim: "Mount the template to bottom of the guitar, using the four 1/16\u201d drill bits to align it. You will need to space this template away from the back of the guitar using two thinner templates on each end." Tool now pins it to BOT 2.',
+    hit: r => false },
+  { id:'Q4', block:'v0.1',
+    t:'E-to-e spacing for 7 and 8 string, plus the tolerance you will accept against an outgoing bridge. The 6-string figure is now sourced: 2.047" / 52mm, marked on both overall-dimension drawings.',
+    m:'EverTune publishes no E-to-e figure at all, only a 0.41"/10.4mm saddle pitch with a "saddles float" caveat. The tool derives from that pitch, which is arithmetic, not spec. Note the F&T string-height window WAS found, on the overall-dimensions drawing, so the spacing may be on a sheet too.',
+    hit: r => r.spacingChecked },
+  { id:'Q5', block:'v0.1',
+    t:'Rear riser thickness method. Is it a straight 44.45 minus body thickness in practice, or is there a fudge factor?',
+    m:'EverTune publishes the trigger threshold but never how thick the riser should be. The tool shows the subtraction and labels it RG.',
+    hit: r => r.rearRiser > 0 },
+  { id:'Q6', block:'v0.2',
+    t:'Rate card EverTune rows are still blank placeholders. Need real numbers before any price shows publicly.',
+    m:'Reference points from invoices S1083 and S1091: F6 bridge $450 CAD, install $450 CAD. Nothing for the fork delta.',
+    hit: r => r.status !== 'no' },
+  { id:'Q7', block:'v0.2',
+    t:'Carved-top fork cost delta. What does the rounded riser plate actually cost to make versus plugging and finishing the old TOM holes?',
+    m:'This is the number that makes the fork a real choice for the customer instead of a shrug.',
+    hit: r => r.fork },
+  { id:'Q8', block:'later',
+    t:'Pocket X/Y geometry from the seven CAD dimension sheets. Callouts are vector graphics so they would not extract, and evertune.com is blocked from the research sandbox.',
+    m:'Needed before the tool can compute whether old TOM post holes fall clear of the EverTune mounting holes, which is your stated fork tiebreaker.',
+    hit: r => r.fork && r.bridge === 'tom' },
+  { id:'Q9', block:'v0.3',
+    t:'CNC top route scope. TOP 2 main pocket only, or the four #7 thru-holes in the same setup so the back templates register off machined holes?',
+    m:'Blocked in practice on workholding anyway. Vacuum jig plus mechanical hold-downs, tracked in backlog.md.',
+    hit: r => r.carve === 'pron' },
+  { id:'Q10', block:'later',
+    t:'Rounded riser plate: parametric like the shim generator, a library of proven sizes, or per-job Fusion work?',
+    m:'Not a v0.1 decision. Affects whether this tool ever outputs riser geometry.',
+    hit: r => r.fork },
+  { id:'Q12', block:'v0.1',
+    t:'G model string height window. The F&T overall-dimensions sheet gives .350"-.532" (8.89-13.51mm). The equivalent G sheet has not been read yet, so the G has no window in the tool.',
+    m:'Right now anything over 13.51mm is simply called G with no upper bound checked. A tall enough guitar could in theory be over the G ceiling too and the tool would not catch it. Pull ET001G-Overall-Dimensions and read the same two callouts.',
+    hit: r => r.model && r.model.startsWith('G') },
+  { id:'Q13', block:'v0.2',
+    t:'The x2 relationship in the riser calculator. Raising the bridge end by X lifts the string over fret 12 by about X/2, so action A needs 2A at the bridge. Straight-line geometry, ignores relief and fret height.',
+    m:'Good enough to size a riser, but confirm against a real setup before cutting. If your bench numbers come out consistently off, the multiplier becomes a Rosco constant instead of 2.',
+    hit: r => A.hz != null },
+  { id:'Q14', block:'v0.2',
+    t:'Rear riser minimum thickness. Tool currently skips making one below 1.0mm on the grounds that no usable stock exists that thin.',
+    m:'Clayton\'s call, needs a real floor. If PETG at 1.5mm is the realistic thinnest printable riser, that becomes the number.',
+    hit: r => r.rearRiserSkip },
+  { id:'Q11', block:'v0.3',
+    t:'G5X back-cover recess depth. EverTune says only "a depth appropriate for recessed back cover plate". No number published.',
+    m:'Tool shows the step with no depth and says measure the plate.',
+    hit: r => r.model && r.model.startsWith('G') }
+];
+
+
+
+/* ============================================================
+   THE RULES
+   ============================================================ */
+function evaluate(){
+  const sh = toMM(A.sh);
+  const bt = toMM(A.bt);
+  const pd = toMM(A.pd);
+  const sp = toMM(A.sp);
+  const bridge = A.bridge;
+  const constr = A.constr;
+  const n  = A.n;
+
+  const r = {
+    sh, bt, pd, sp, bridge, constr, n, override:A.override, overridden:false,
+    carve:A.carve, pg:A.pg, scaleType:A.scale,
+    status:'go', headline:'', why:'',
+    model:null, modelLabel:'', gLong:null,
+    rearRiser:0, riserNote:'', routeThrough:false,
+    holes:'', holesTier:'RG',
+    fork:false, spacingChecked:false, spacingDelta:0, spacingTarget:0,
+    msgs:[], stops:[]
+  };
+
+  /* ---------- Gate B2: below the F floor ----------
+     The F&T faceplate is 8.89mm tall at the string. Nothing gets the strings lower than that. */
+  if(lt(sh, F.F_SH_MIN)){
+    r.status = 'no';
+    r.headline = 'Strings sit too low for any EverTune';
+    r.why = 'String height at the bridge is ' + both(sh) + '. The F and T bridges cannot put the strings lower than ' + both(F.F_SH_MIN) + ' above the top, and the G sits higher still. You are ' + both(F.F_SH_MIN - sh) + ' under the floor.';
+    r.stops.push({t:'ET', h:'Below the F&T minimum', b:'The overall-dimensions sheet marks <b>.350" / 8.89mm</b> as the minimum string height above the body top, and <b>2.098" / 53.3mm</b> as the limiting dimension for guitar thickness. Those two numbers are related: <b>1.750" body + .350" strings = 2.098"</b>. The combined gate is just the sum of the two minimums.<br><br>A guitar this low needs a <b>neck angle or neck-pocket change</b> to raise the strings before an EverTune is on the table. That is a different job.'});
+    return r;
+  }
+
+  /* ---------- Gate A: combined threshold ----------
+     Each model has its own "limiting dimension for guitar thickness", off the overall-dimension
+     sheets. The F&T has one. The G has two: typical install, and extremely thin guitars. */
+  r.combined = sh + bt;
+  const gRange = !lt(sh, F.MODEL_SPLIT_MM);
+  r.gateName = gRange ? 'G' : 'F&T';
+  r.gateMin  = gRange ? F.G_COMBINED_THIN : F.COMBINED_MIN_MM;
+  if(A.bt != null && !(r.combined > r.gateMin + EPS)){
+    r.status = 'no';
+    r.headline = 'Not a candidate as it sits';
+    r.why = 'Body thickness plus string height is ' + both(r.combined) + '. The ' + r.gateName + ' needs more than ' + both(r.gateMin) + '. You are short by ' + both(r.gateMin - r.combined) + '.';
+    r.stops.push({t:'ET', h:'Limiting dimension for guitar thickness', b:'Each bridge has its own figure, marked on the overall-dimension drawing as the <b>limiting dimension for guitar thickness</b>.<br><br><b>F &amp; T:</b> 2.098" / 53.29mm.<br><b>G, typical install:</b> 2.396" / 60.85mm.<br><b>G, extremely thin guitars:</b> 2.093" / 53.16mm.<br><br>Body thickness plus string height has to beat it. Re-measure at the bridge before writing the guitar off.'});
+    return r;
+  }
+  if(A.bt != null && gRange && !(r.combined > F.G_COMBINED_TYPICAL + EPS)){
+    if(r.status==='go') r.status='cond';
+    r.gThin = true;
+    r.msgs.push({t:'ET', k:'warn', h:'G, but only as an extremely thin install',
+      b:'Combined thickness is ' + both(r.combined) + '. A <b>typical G install wants more than ' + both(F.G_COMBINED_TYPICAL) + '</b> (2.396"). You are over the <b>extremely thin</b> figure of ' + both(F.G_COMBINED_THIN) + ' (2.093") but under the typical one, so this is the awkward version: route through the body and cover the back. Price it accordingly.'});
+  }
+
+  /* ---------- Gate B: construction and unsuitable guitars ---------- */
+  if(constr === 'hollow'){
+    r.status = 'no';
+    r.headline = 'Not a candidate - hollow body';
+    r.why = 'Nothing solid to attach the bridge to.';
+    r.stops.push({t:'ET', h:'Hollow body', b:'EverTune names Gibson ES-330s specifically: "nothing solid to which attach the bridge."'});
+    return r;
+  }
+  if(bridge === 'jazzmaster'){
+    r.status = 'no';
+    r.headline = 'Not a candidate - Jazzmaster style';
+    r.why = 'The trem pocket leaves a hole there is not enough wood to fill.';
+    r.stops.push({t:'ET', h:'Jazzmaster', b:'EverTune names these explicitly: "not enough wood is removed to fill the hole left by the trem pocket."'});
+    return r;
+  }
+  if(constr === 'chambered' || constr === 'semi'){
+    r.status = 'cond';
+    r.msgs.push({t:'ET', k:'stop', h:'Chambered / semi-hollow - confirm before quoting', b:'EverTune: "unsuitable candidates <b>unless you know the chambering is not at a support point</b>." That is a conditional, not a flat no, but you need to actually know where the chambers are. Get a look inside or a factory drawing before this becomes a booking.'});
+  }
+
+  /* ---------- Gate C: model ---------- */
+  const boundary = Math.abs(sh - F.MODEL_SPLIT_MM) < 0.3;
+  if(lt(sh, F.MODEL_SPLIT_MM)){
+    r.model = 'F';
+  } else {
+    r.model = 'G';
+  }
+  if(boundary){
+    if(r.status==='go') r.status='cond';
+    r.msgs.push({t:'ET', k:'warn', h:'Right at the top of the F window', b:'String height is ' + both(sh) + '. The F&amp;T dimension sheet puts the ceiling at <b>.532" / 13.51mm</b>, and the Buying Guide rounds that down to 13mm / 1/2" for the F-vs-G call. You are inside a few tenths of it, which means <b>almost no downward adjustment left</b> once it is in. Re-measure strung to pitch and set up properly before ordering anything.'});
+  }
+
+  /* where does it sit inside the F window */
+  r.inFWindow = !lt(sh, F.F_SH_MIN) && !lt(F.F_SH_MAX, sh);
+  r.fWindowPct = Math.max(0, Math.min(1, (sh - F.F_SH_MIN) / (F.F_SH_MAX - F.F_SH_MIN)));
+
+  /* Tech override: the fork means a G-range guitar can deliberately be built as an F + riser. */
+  r.autoModel = r.model;
+  /* the tech override wins; otherwise the customer's pick on the preference card decides */
+  const pick = A.override !== 'auto' ? A.override : (A.pref || 'auto');
+  if(pick === 'F' && r.model === 'G'){ r.model = 'F'; r.overridden = true; r.byPref = (A.override==='auto'); }
+  if(pick === 'G' && r.model === 'F'){ r.model = 'G'; r.overridden = true; r.byPref = (A.override==='auto'); }
+
+  /* T model is an F with the Tele wrap plate - offered, not auto-selected */
+  if(r.model === 'F'){
+    r.modelLabel = n === 6 ? 'F' : (n === 7 ? 'F7' : 'F8');
+    if(A.scale === 'multi') r.modelLabel += ' Multiscale';
+    r.msgs.push({t:'ET', k:'', h:'T model is the same call', b:'The T is an F with the metal plate that wraps the bridge pickup, Tele style. If this guitar wants that plate, order T instead. Note the Tele bridge pickup has a nub underneath on the bridge side that fouls the EverTune, so <b>the pickup gets flipped 180 degrees</b>. Pole pieces shift slightly, negligible tonally.'});
+  } else {
+    if(pd > 0){
+      if(!lt(F.G_LONG_A_MM, pd))      { r.gLong = false; r.modelLabel = 'G Standard'; }
+      else if(lt(F.G_LONG_B_MM, pd))  { r.gLong = true;  r.modelLabel = 'G Long'; }
+      else {
+        r.gLong = 'ambiguous';
+        r.modelLabel = 'G';
+        r.gSuffix = ' - Standard or Long unresolved';
+        if(r.status==='go') r.status='cond';
+        r.msgs.push({t:'ET', k:'warn', h:'G Standard vs Long is unresolved at this measurement', q:'Q1',
+          b:'Your ' + both(pd) + ' lands between EverTune\'s own two published thresholds. The Buying Guide says Standard at 0.55" / 14mm or below. The G Model page and Installer Program page both say Standard at 5/8" / 15.88mm or less. <b>They disagree and this measurement falls in the gap.</b> Confirm with EverTune before ordering.'});
+      }
+      if(r.gLong === true){
+        r.msgs.push({t:'ET', k:'', h:'G Long means trimming', b:'Ordering a G Long means <b>the installer trims the front of the bridge</b> to suit the pickup bezel distance. Build that into the time.'});
+      }
+    } else {
+      r.modelLabel = 'G';
+      r.msgs.push({t:'ET', k:'warn', h:'Measure scale line to pickup bezel', b:'Needed to call G Standard vs G Long. Enter it above.'});
+    }
+    if(A.scale === 'multi') r.modelLabel += ' (multiscale G is a custom order, confirm availability)';
+  }
+
+  if(r.overridden && r.byPref){
+    r.needsFrontRiser = (r.model === 'F');
+    if(r.needsFrontRiser){
+      r.msgs.push({t:'RG', k:'', h:'This one takes a riser plate',
+        b:'You picked the F. The strings sit at ' + both(sh) + ', which is above what an F reaches on its own, so a <b>riser plate</b> under the bridge makes up the difference. It also covers the old bridge holes, which is the main reason to go this way.<br><br>The shop sizes the plate from a fret-12 measurement. Nothing for you to work out.'});
+    }
+  } else if(r.overridden){
+    if(r.status==='go') r.status='cond';
+    r.msgs.push({t:'RG', k:'warn', h:'Model overridden by hand',
+      b:'String height of ' + both(sh) + ' calls for <b>' + r.autoModel + '</b>, but you have forced <b>' + r.model + '</b>.' +
+        (r.model === 'F' ? ' That is the F + riser path off the fork, which is a real choice, not a mistake. <b>The riser has to make up the height difference and every backside route depth goes down with it.</b> Set the riser height in Install mode.' : ' Double check this is what you want.')});
+  }
+
+  /* ---------- Gate D: risers ---------- */
+  if(r.model === 'F'){
+    if(lt(bt, F.FT_MIN_BODY_MM)){
+      r.rearRiser = F.FT_MIN_BODY_MM - bt;
+      if(r.rearRiser < F.RISER_MIN_MM){
+        r.rearRiserSkip = true;
+        r.riserNote = 'Under the F&T minimum by ' + both(r.rearRiser) + ', too little to bother';
+        r.msgs.push({t:'RG', k:'', h:'Technically under the minimum, but do not make a riser for this',
+          b:'Body is ' + both(bt) + ', which is ' + both(r.rearRiser) + ' under the 1 3/4" / 44.45mm F &amp; T minimum. <b>You cannot buy or make usable stock that thin</b>, and the difference is inside normal measuring error on a guitar body anyway. Treat it as on spec, but check the modules clear at full action height before final assembly.'});
+        r.rearRiser = 0;
+      } else {
+      r.riserNote = 'Rear back-plate riser required, roughly ' + both(r.rearRiser);
+      if(r.status==='go') r.status='cond';
+      r.msgs.push({t:'RG', k:'warn', h:'Rear riser required', q:'Q5',
+        b:'Body is ' + both(bt) + ', under the 1 3/4" / 44.45mm F &amp; T minimum. EverTune: the footplate mounts <b>on top of a custom back plate riser</b> to position the modules correctly. <b>They publish the trigger but never the thickness.</b> The ' + both(r.rearRiser) + ' above is the plain subtraction, which is Rosco arithmetic, not manufacturer guidance.'});
+      }
+    } else {
+      r.riserNote = 'No rear riser needed';
+    }
+  } else {
+    if(gte(bt, F.G_STANDARD_MM)){
+      r.riserNote = 'Standard G install, both back covers recessed';
+    } else if(gte(bt, F.G_FOOTPLATE_MM)){
+      r.routeThrough = true;
+      r.riserNote = 'Footplate can be recessed, but under 2.1" so this is a route-through-body install';
+      if(r.status==='go') r.status='cond';
+      r.msgs.push({t:'ET', k:'warn', h:'Route-through-body G install', b:'Body is ' + both(bt) + '. Over the 1 7/8" / 47.63mm needed to recess the footplate, but under the 2.1" / 53.34mm a standard G wants. EverTune: any G under 2.1" becomes a <b>route through body</b> install and needs an <b>F or T model back plate</b> to cover the pocket on the back.'});
+    } else {
+      r.routeThrough = true;
+      r.rearRiser = F.FT_MIN_BODY_MM - bt;
+      r.riserNote = 'Route-through-body, and a custom back plate riser';
+      if(r.status==='go') r.status='cond';
+      r.msgs.push({t:'ET', k:'warn', h:'Thin body for a G', q:'Q5',
+        b:'At ' + both(bt) + ' you are under the 1 7/8" / 47.63mm needed to recess the footplate. Route-through-body install, <b>F or T back plate</b> to cover, and a custom riser on top of that. Doable, but price it as the awkward job it is.'});
+    }
+  }
+
+  /* ---------- Gate E: old bridge holes ---------- */
+  const H = {
+    tom:        {t:'RG', s:'Plug the post holes', b:'Cut finish-matched donor plugs and plug the posts. Same job whether it is a tune-o-matic on posts or a wraparound on studs. EverTune\'s own G sequence uses <b>1/2" and 1/4" plug cutters</b> at the G2 step. Watch the big ones: Gretsch style guitars use <b>9/16" posts</b>, which plug ugly. On a retrofit the plugs are never invisible, so set that expectation up front.'},
+    wrap:       {t:'RG', s:'Plug the post holes', b:'Same as a TOM. Donor plugs, finish matched, and they will still be faintly visible.'},
+    surface:    {t:'RG', s:'Good to go', b:'A hardtail sitting flat on the top is the clean case. Its own mounting screws are small and usually fall inside the EverTune footprint anyway.'},
+    trem:       {t:'ET', s:'Wood fill, before routing', b:'Glue wood into the trem cavity, normally <b>before</b> routing the EverTune, and match finish where you can. On the back the <b>asymmetrical F-style backplate covers the old route</b>, which is verbatim from the F&amp;T instructions. Note EverTune themselves <b>no longer take these on</b> for their own install service, so price accordingly.'},
+    tremvintage:{t:'ET', s:'Wood fill, before routing', b:'Same approach. EverTune charges +$50 USD on Strat trem fills for their own service, which tells you they consider it real extra work. Use the <b>asymmetrical F-style backplate</b> to cover the old route on the back.'},
+    jazzmaster: {t:'ET', s:'-', b:'-'},
+    none:       {t:'RG', s:'Clean slate', b:'New build or bare body. Nothing to fill, nothing to hide.'}
+  };
+  const h = H[bridge] || H.none;
+  r.holes = h.s; r.holesTier = h.t; r.holesBody = h.b;
+  if(A.thru){
+    r.msgs.push({t:'RG', k:'warn', h:'String-through ferrules need checking',
+      b:'The ferrules are the risk here, not the bridge. <b>Confirm they fall outside the EverTune pocket and outside the four #7 mounting holes</b> before you commit. EverTune publishes nothing about ferrule conflicts, so this one is on you.<br><br>If they do land inside, they get plugged along with everything else and the EverTune anchors its own strings at the saddles, so nothing is lost but the look of the back.'});
+    if(r.status==='go') r.status='cond';
+    r.holes = r.holes === 'Good to go' ? 'Check the ferrules' : r.holes + ' + ferrules';
+  }
+  if(bridge === 'trem' || bridge === 'tremvintage'){
+    if(r.status==='go') r.status='cond';
+    r.msgs.push({t:'ET', k:'warn', h:'Existing trem route', b:h.b});
+  }
+
+  /* ---------- Gate F: spacing ---------- */
+  if(sp > 0){
+    r.spacingChecked = true;
+    r.spacingPublished = (n === 6);
+    r.spacingTarget = (n === 6) ? F.E_TO_E_6 : (n - 1) * F.SADDLE_PITCH_MM;
+    r.spacingDelta = r.spacingTarget - sp;
+    const ad = Math.abs(r.spacingDelta);
+    r.msgs.push({t:(n===6?'ET':'GAP'), k: ad > 2 ? 'warn' : '', h:'String spacing check', q:'Q4',
+      b:(r.spacingPublished
+          ? 'EverTune E-to-e for 6 strings is <b>2.047" / 52mm</b>, marked on both overall-dimension drawings. '
+          : 'Derived E-to-e for ' + n + ' strings is <b>' + both(r.spacingTarget) + '</b>, from the 0.41" / 10.4mm saddle pitch. <b>Arithmetic, not a published figure.</b> ')
+        + 'Against your measured ' + both(sp) + ' that is a difference of ' + (r.spacingDelta >= 0 ? '+' : '') + both(r.spacingDelta) + ' (' + (r.spacingDelta >= 0 ? 'EverTune wider' : 'EverTune narrower') + ').<br><br>EverTune publish <b>no tolerance</b> against an outgoing bridge, and note the saddles float so spacing "can vary a tiny bit". Check the strings land over the pole pieces and inside the fretboard edge yourself.'});
+  }
+
+  /* ---------- Gate G: carved top ---------- */
+  if(A.carve === 'mild' || A.carve === 'pron'){
+    r.msgs.push({t:'ET', k:'', h:'Carved top - do not alter the carve', b:'EverTune, verbatim: "We actually <b>do not recommend altering the carve or the EverTune faceplate</b> when performing retrofits." The better move if the gap bothers the customer is to <b>sand the bottom of the faceplate</b> to follow the top radius, if it can be done without damaging the plating. A small visible gap at the faceplate edge is normal and acceptable. <b>Always check the customer\'s preference first.</b>'});
+  }
+  if(A.carve === 'pron'){
+    if(r.status==='go') r.status='cond';
+    r.msgs.push({t:'RG', k:'warn', h:'Pronounced carve - template adhesion is the weak point', q:'Q9',
+      b:'Sticking a template to a real carve is the sketchiest step in the job. Tape-shimmed twice now and it held, but it is not a method. <b>Machine the first top route on the CNC instead</b>, datumed off the centreline crossing the scale-length line, which is the same marker the templates register to, so nothing downstream changes. The machined pocket floor then gives every later template a flat true surface.<br><br><b>Blocked on workholding.</b> Bodies have only been held with double-sided tape. Wants a vacuum jig with mechanical hold-downs. Until then this is a described option, not a recommendation.'});
+  }
+
+  /* ---------- Gate G2: the fork ---------- */
+  if(r.model === 'G' && (A.carve !== 'flat' || bridge === 'tom' || bridge === 'wrap')){
+    r.fork = true;
+    if(r.status==='go') r.status='cond';
+  }
+
+  /* ---------- headline ---------- */
+  if(!r.headline){
+    if(r.status === 'go'){
+      r.headline = r.modelLabel + ' model, straight install';
+      r.why = 'Combined thickness ' + both(r.combined) + ', clear of the 53mm gate. ' + r.riserNote + '. ' + r.holes + '.';
+    } else {
+      r.headline = r.modelLabel + ' model' + (r.gSuffix||'') + ', with conditions';
+      r.why = 'Combined thickness ' + both(r.combined) + ', clear of the 53mm gate. ' + r.riserNote + '. Read the notes below before quoting.';
+    }
+  }
+  return r;
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const A = {                     // the answers
+  sh:null, bt:null, bridge:null, constr:'solid', carve:null,
+  n:6, scale:'fixed', pg:null, pd:null, sp:null, thru:false, pref:null,
+  hz:null, act:1.5875,                    // fret-12-touch height, target 12th-fret action
+  override:'auto', riser:0, method:'tpl'
+};
+const S = { unit:'mm', theme:'dark', view:'flow', i:0, tech:false,
+            steps:{}, notes:{}, qdone:{}, seen:false, said:{} };
+const said = k => { S.said[k] = true; };
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ============================================================
+   DIAGRAMS - the two measurements people get wrong
+   ============================================================ */
+const DG = {
+sh:`<svg viewBox="0 0 340 132" fill="none">
+ <defs><marker id="ah" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+   <path d="M0 0 L7 3.5 L0 7 z" fill="var(--accent)"/></marker></defs>
+ <path d="M18 74 H322" stroke="var(--line2)" stroke-width="1.5"/>
+ <path d="M18 74 Q18 108 46 110 H294 Q322 108 322 74 Z" fill="var(--card)" stroke="var(--line2)" stroke-width="1.5"/>
+ <text x="170" y="98" fill="var(--muted)" font-size="10.5" text-anchor="middle" font-family="system-ui">guitar body</text>
+ <rect x="196" y="42" width="46" height="32" rx="3" fill="var(--card)" stroke="var(--muted)" stroke-width="1.5"/>
+ <text x="219" y="62" fill="var(--muted)" font-size="9" text-anchor="middle" font-family="system-ui">bridge</text>
+ <path d="M40 40 H300" stroke="var(--ink)" stroke-width="2"/>
+ <path d="M40 36 H300" stroke="var(--ink)" stroke-width="1" opacity=".45"/>
+ <text x="62" y="30" fill="var(--muted)" font-size="10.5" font-family="system-ui">strings</text>
+ <path d="M150 74 V41" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#ah)" marker-end="url(#ah)"/>
+ <path d="M120 74 H180" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>
+ <text x="140" y="60" fill="var(--accent)" font-size="11" text-anchor="end" font-weight="600" font-family="system-ui">this</text>
+</svg>`,
+bt:`<svg viewBox="0 0 340 132" fill="none">
+ <defs><marker id="ah2" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+   <path d="M0 0 L7 3.5 L0 7 z" fill="var(--accent)"/></marker></defs>
+ <path d="M18 44 H322" stroke="var(--line2)" stroke-width="1.5"/>
+ <path d="M18 44 V96 Q18 104 28 104 H312 Q322 104 322 96 V44" fill="var(--card)" stroke="var(--line2)" stroke-width="1.5"/>
+ <rect x="196" y="14" width="46" height="30" rx="3" fill="var(--card2)" stroke="var(--muted)" stroke-width="1.5"/>
+ <text x="219" y="33" fill="var(--muted)" font-size="9" text-anchor="middle" font-family="system-ui">bridge</text>
+ <path d="M219 44 V104" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="0" marker-start="url(#ah2)" marker-end="url(#ah2)"/>
+ <text x="232" y="78" fill="var(--accent)" font-size="11" font-weight="600" font-family="system-ui">this</text>
+ <path d="M60 44 V104" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 3" opacity=".5"/>
+ <text x="70" y="78" fill="var(--muted)" font-size="10" font-family="system-ui">not here</text>
+</svg>`
+};
+/* Placeholder option drawings. Swap these for Clayton's artwork - they use theme vars so
+   they follow light/dark automatically. */
+const PIC = {
+F:`<svg viewBox="0 0 300 118" fill="none">
+ <path d="M14 70 H286" stroke="var(--line2)" stroke-width="1.5"/>
+ <path d="M14 70 V96 Q14 102 22 102 H278 Q286 102 286 96 V70 Z" fill="var(--card)" stroke="var(--line2)" stroke-width="1.5"/>
+ <path d="M96 74 h22 v24 h-22z M182 74 h22 v24 h-22z" fill="var(--line)" stroke="var(--line2)" stroke-width="1"/>
+ <text x="150" y="94" fill="var(--muted)" font-size="8.5" text-anchor="middle" font-family="system-ui">old holes, plugged or hidden</text>
+ <rect x="78" y="52" width="144" height="18" rx="2.5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+ <text x="150" y="65" fill="var(--accent)" font-size="9" text-anchor="middle" font-weight="600" font-family="system-ui">RISER PLATE</text>
+ <rect x="86" y="26" width="128" height="26" rx="3" fill="var(--card)" stroke="var(--ink)" stroke-width="1.6"/>
+ <text x="150" y="43" fill="var(--ink)" font-size="10" text-anchor="middle" font-weight="600" font-family="system-ui">F MODEL</text>
+ <path d="M40 20 H262" stroke="var(--ink)" stroke-width="1.8"/>
+</svg>`,
+G:`<svg viewBox="0 0 300 118" fill="none">
+ <path d="M14 70 H286" stroke="var(--line2)" stroke-width="1.5"/>
+ <path d="M14 70 V96 Q14 102 22 102 H278 Q286 102 286 96 V70 Z" fill="var(--card)" stroke="var(--line2)" stroke-width="1.5"/>
+ <path d="M100 70 v20 M200 70 v20" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"/>
+ <text x="150" y="97" fill="var(--muted)" font-size="8.5" text-anchor="middle" font-family="system-ui">mounts on the existing posts</text>
+ <rect x="86" y="34" width="128" height="36" rx="3" fill="var(--card)" stroke="var(--ink)" stroke-width="1.6"/>
+ <text x="150" y="56" fill="var(--ink)" font-size="10" text-anchor="middle" font-weight="600" font-family="system-ui">G MODEL</text>
+ <path d="M40 26 H262" stroke="var(--ink)" stroke-width="1.8"/>
+</svg>`
+};
+const IC = {
+ tom:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="14" height="6" rx="1"/><circle cx="5" cy="16" r="1.6"/><circle cx="15" cy="16" r="1.6"/></svg>',
+ flat:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12h16"/></svg>',
+ trem:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="14" height="6" rx="1"/><path d="M14 10l4 5"/></svg>',
+ none:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="7" stroke-dasharray="2.5 2.5"/></svg>',
+ thru:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="14" height="5" rx="1"/><circle cx="6" cy="15" r="1.2"/><circle cx="10" cy="15" r="1.2"/><circle cx="14" cy="15" r="1.2"/></svg>',
+ wrap:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h12a2 2 0 012 2v0a2 2 0 01-2 2H4z"/></svg>',
+ jm:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10h9"/><circle cx="15" cy="10" r="3"/></svg>',
+ solid:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="14" height="10" rx="2" fill="currentColor" opacity=".25"/><rect x="3" y="5" width="14" height="10" rx="2"/></svg>',
+ cham:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="14" height="10" rx="2"/><circle cx="8" cy="10" r="2"/><circle cx="13" cy="10" r="1.6"/></svg>',
+ hollow:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M10 7.5v5M8 10h4"/></svg>',
+ carve:'<svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 13c4 0 5-6 8-6s4 6 8 6"/></svg>'
+};
+
+/* ============================================================
+   THE FLOW  -  only what the answers actually require
+   ============================================================ */
+const STEPS = [
+{ id:'sh', when:()=>true, key:'sh', type:'num',
+  eyebrow:'Measurement 1 of 2',
+  q:'How high are the strings at the bridge?',
+  s:'From the <b>top of the body</b> up to the <b>underside of the strings</b>, measured right at the bridge. This is the only thing that picks the model. EverTune are blunt about it: guitar shape does not matter.',
+  dg:'sh', cap:'Body top to underside of strings, at the bridge',
+  gauge:true,
+  tip:{ t:'Measure it set up, not as it sits',
+        b:'This number only means anything if the guitar is <b>set up with sensible action first</b>. A bridge cranked way up or bottomed out will push the answer into the wrong model.<br><br>Get it to roughly <b>'+'.0625" to .075" (1.59 to 1.91mm)</b> at the 12th fret, strung and tuned to pitch, then measure at the bridge. If you cannot set it up first, say so on the job sheet, because the model call rides on this one number.' },
+  ph:'14' },
+
+{ id:'bt', when:()=>true, key:'bt', type:'num',
+  eyebrow:'Measurement 2 of 2',
+  q:'How thick is the body at the bridge?',
+  s:'At the <b>bridge location</b>, not at the edge or the waist. This drives the riser call and every router depth later.',
+  dg:'bt', cap:'Thickness of the body directly under the bridge',
+  tip:{ t:'You cannot get calipers through the middle of a guitar',
+        b:'Nobody can measure this directly. The usual way:<br><br><b>Lay the guitar on its back</b> on a flat bench. Put a <b>straight edge</b> across the top so it runs out past the edge of the body, level with the top at the bridge. Then measure from the bench up to the underside of the straight edge with a caliper or tape.<br><br>That gives you the thickness at the bridge without having to reach through anything. On a carved top this matters, because the edge of the body can be several millimetres thinner than the middle.' },
+  ph:'44.45' },
+
+{ id:'bridge', when:()=>true, key:'bridge', type:'tiles', cols:2,
+  eyebrow:'The old hardware',
+  q:'What is on there now?',
+  s:'This decides what happens to the holes the old bridge leaves behind, which is usually where the extra cost lives.',
+  extra:{ key:'thru', label:'Strings also go through the body, with ferrules on the back',
+          hint:'Tick this for either type. A tune-o-matic can be string-through and a hardtail usually is. The ferrules are a separate thing to check, because they can land inside the EverTune route.' },
+  opts:[
+    {v:'tom',        ic:'tom',  t:'Tune-o-matic or wraparound', d:'Posts or studs into the body'},
+    {v:'surface',    ic:'flat', t:'Hardtail',           d:'Sits flat on the top'},
+    {v:'trem',       ic:'trem', t:'Floyd / Kahler',      d:'Recessed trem route'},
+    {v:'tremvintage',ic:'trem', t:'Vintage trem',        d:'6-screw or 2-point'},
+    {v:'jazzmaster', ic:'jm',   t:'Jazzmaster / floating',d:'Big trem pocket'},
+    {v:'none',       ic:'none', t:'Nothing',             d:'New build or bare body'}
+  ]},
+
+{ id:'body', when:()=>true, type:'multi',
+  eyebrow:'The body',
+  q:'Tell me about the body.',
+  s:'Construction decides whether there is wood where the bridge needs to bolt. The top decides how hard the templates are to hold.',
+  rows:[
+    {key:'constr', label:'Construction', type:'tiles', cols:2, opts:[
+      {v:'solid',    ic:'solid',  t:'Solid',       d:'Standard solid body'},
+      {v:'chambered',ic:'cham',   t:'Chambered',   d:'Routed pockets inside'},
+      {v:'semi',     ic:'cham',   t:'Semi-hollow', d:'Centre block'},
+      {v:'hollow',   ic:'hollow', t:'Hollow',      d:'No centre block'}
+    ]},
+    {key:'carve', label:'Top', type:'pills', opts:[
+      {v:'flat', t:'Flat'},{v:'mild', t:'Mild carve'},{v:'pron', t:'Pronounced carve'}
+    ]}
+  ]},
+
+{ id:'strings', when:()=>true, type:'multi',
+  eyebrow:'The instrument',
+  q:'How many strings?',
+  s:'Sets which bridge in the family. Multiscale is a custom order whichever model you land on.',
+  rows:[
+    {key:'n', label:'Strings', type:'pills', num:true, opts:[{v:6,t:'6'},{v:7,t:'7'},{v:8,t:'8'}]},
+    {key:'scale', label:'Scale', type:'pills', opts:[{v:'fixed',t:'Fixed'},{v:'multi',t:'Multiscale'}]}
+  ]},
+
+{ id:'pg', when:()=> peekModel() === 'F', key:'pg', type:'tiles', cols:2,
+  eyebrow:'F model only',
+  q:'Is there a pickguard?',
+  s:'On an F this is a real branch. The route leaves a <b>1/4" web</b> between the bridge pocket and the pickup pocket. With a pickguard it comes out. Without one it stays and has to be chamfered underneath so it clears the modules.',
+  opts:[
+    {v:'yes', ic:'flat', t:'Yes, pickguard', d:'Web can be removed. May need trimming.'},
+    {v:'no',  ic:'none', t:'No pickguard',   d:'Web stays, gets a 1/2" bottom chamfer.'}
+  ]},
+
+{ id:'pd', when:()=> peekModel() === 'G', key:'pd', type:'num',
+  eyebrow:'G model only',
+  q:'Scale line to the pickup bezel?',
+  s:'This is the <b>only</b> thing separating a G Standard from a G Long. Measure from the scale-length line back to the front edge of the bridge pickup bezel.',
+  ph:'12', optional:true, skipLabel:'I have not measured it yet' },
+
+{ id:'pref', when:()=> A.sh != null && lt(F.F_SH_MAX, toMM(A.sh)), key:'pref', type:'tiles', cols:2,
+  eyebrow:'Your call',
+  q:'Which of these do you want?',
+  s:'These strings sit high enough that both work. It is a look-and-cost choice, not a technical one. Pick the one you like and the shop sizes everything else.',
+  pics:true,
+  opts:[
+    {v:'F', pic:'F', t:'F model on a riser plate',
+     d:'A plate under the bridge makes up the height. It also covers the old bridge holes, so no plugging and no finish work on them. The plate is visible.'},
+    {v:'G', pic:'G', t:'G model, mounts on the old holes',
+     d:'Sits at the right height on its own, no plate. The old post holes get plugged and finished, and on a refinish-free retrofit those plugs will always be faintly visible.'}
+  ]},
+
+{ id:'sp', when:()=>true, key:'sp', type:'num',
+  eyebrow:'Last one',
+  q:'String spacing at the old bridge?',
+  s:'Outer string centres, E to e. A sanity check that the strings still land right on the neck after the swap. Skip it if you are just scoping the job.',
+  ph:'52', optional:true, skipLabel:'Skip this check' }
+];
+
+/* ============================================================
+   FRONT RISER  -  Clayton's method
+   Drop the existing bridge until the strings touch at fret 12. That height at the
+   bridge is the geometric floor. Fret 12 is the string midpoint, so lifting the
+   bridge end by X raises the string at fret 12 by X/2 - to buy action A you need 2A
+   at the bridge. Then the riser makes up whatever the EverTune window cannot reach.
+   ============================================================ */
+function riserCalc(){
+  if(A.hz == null) return null;
+  const hz  = toMM(A.hz);
+  const act = toMM(A.act);
+  const target = hz + 2*act;                       // string height at the bridge, set up
+  const loR = target - F.F_SH_MAX;                 // thinnest riser that still works
+  const hiR = target - F.F_SH_MIN;                 // thickest before the bridge bottoms out
+  const idR = target - F.F_SH_MID;                 // aim here, adjustment both ways
+  return {
+    hz, act, target, loR, hiR, idR,
+    needed  : idR >= F.RISER_MIN_MM,
+    tooThin : idR > 0 && idR < F.RISER_MIN_MM,
+    none    : idR <= 0,
+    fitsBare: target >= F.F_SH_MIN - EPS && target <= F.F_SH_MAX + EPS,
+    /* if the measured string height is also on file, the two together imply the action
+       the guitar is CURRENTLY set up at. That is a free setup check. */
+    impliedAction: A.sh == null ? null : (toMM(A.sh) - hz) / 2
+  };
+}
+
+/* peek the model mid-flow without running the whole evaluator */
+function peekModel(){
+  if(A.sh == null) return null;
+  const sh = toMM(A.sh);
+  if(A.override === 'F') return 'F';
+  if(A.override === 'G') return 'G';
+  return lt(sh, F.MODEL_SPLIT_MM) ? 'F' : 'G';
+}
+/* hard stop as soon as we know, so nobody answers six more questions for nothing */
+function earlyStop(){
+  if(A.sh != null && lt(toMM(A.sh), F.F_SH_MIN)) return 'floor';   // known from question 1
+  if(A.sh == null || A.bt == null) return null;
+  const c = toMM(A.sh) + toMM(A.bt);
+  if(!(c > F.COMBINED_MIN_MM + EPS)) return 'combined';
+  return null;
+}
+function visibleSteps(){ return STEPS.filter(s => s.when()); }
+
+/* ============================================================
+   UNITS
+   ============================================================ */
+const toMM   = v => v == null ? 0 : (S.unit === 'mm' ? +v : +v * MM);
+const fmt    = mm => mm.toFixed(2).replace(/\.?0+$/,'');
+const dispMM = mm => S.unit === 'mm' ? fmt(mm)+' mm'
+                    : (mm/MM).toFixed(3).replace(/0+$/,'').replace(/\.$/,'')+'"';
+const both   = mm => fmt(mm)+' mm / '+(mm/MM).toFixed(3).replace(/0+$/,'').replace(/\.$/,'')+'"';
+const inch   = mm => (mm/MM).toFixed(3).replace(/0+$/,'').replace(/\.$/,'')+'"';
+/* primary unit large, the other one quiet beside it - always both */
+const dual   = mm => S.unit==='mm'
+  ? fmt(mm)+' mm <span class="sec">'+inch(mm)+'</span>'
+  : inch(mm)+' <span class="sec">'+fmt(mm)+' mm</span>';
+function switchUnit(to){
+  ['sh','bt','pd','sp','riser','hz','act'].forEach(k=>{
+    if(A[k] == null || A[k] === '') return;
+    const v = parseFloat(A[k]); if(isNaN(v)) return;
+    A[k] = to === 'in' ? +(v/MM).toFixed(3) : +(v*MM).toFixed(2);
+  });
+  S.unit = to;
+}
+
+/* ============================================================
+   RENDER - FLOW
+   ============================================================ */
+function tierTag(t){ return t ? ' <span class="tier '+t+'">'+t+'</span>' : ''; }
+function qFlag(q){ return q ? ' <button class="qflag" data-q="'+q+'">&#9873; '+q+'</button>' : ''; }
+const CHEV = '<svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l5 5-5 5"/></svg>';
+
+function renderFlow(){
+  const vis = visibleSteps();
+  if(S.i >= vis.length){ S.view='result'; return render(); }
+  const st = vis[S.i];
+  const unit = S.unit === 'mm' ? 'mm' : 'in';
+  let h = '<div class="step">';
+  h += '<div class="eyebrow">'+st.eyebrow+'</div>';
+  h += '<h1 class="q">'+st.q+'</h1>';
+  h += '<p class="qs">'+st.s+'</p>';
+
+  if(st.type === 'riser'){
+    h += riserStepHTML();
+  }
+  if(st.type === 'num'){
+    if(st.dg) h += '<div class="dg">'+DG[st.dg]+'<div class="cp">'+st.cap+'</div></div>';
+    const val = A[st.key] == null ? '' : A[st.key];
+    h += '<div class="numrow"><div class="numbox"><input type="number" inputmode="decimal" id="inp" '
+       + 'value="'+val+'" placeholder="'+st.ph+'" step="0.1" autocomplete="off"><span class="un">'+unit+'</span></div></div>';
+    h += '<div class="alt" id="alt"></div>';
+    if(st.gauge) h += '<div class="gauge" id="gauge"></div>';
+    if(st.tip) h += '<details class="tip"><summary>'+CHEV+st.tip.t+'</summary><div class="tb">'+st.tip.b+'</div></details>';
+  }
+  if(st.type === 'tiles' && st.pics){
+    h += '<div class="ptiles">';
+    st.opts.forEach(op=>{
+      h += '<button class="pt'+(A[st.key]===op.v?' sel':'')+'" data-k="'+st.key+'" data-v="'+op.v+'">'
+         + '<span class="pic">'+PIC[op.pic]+'</span>'
+         + '<span class="pb"><span class="pt-t">'+op.t+'</span><span class="pt-d">'+op.d+'</span></span></button>';
+    });
+    h += '</div>';
+  } else if(st.type === 'tiles'){
+    h += tilesHTML(st.opts, A[st.key], st.cols, 'data-k="'+st.key+'"');
+    if(st.extra) h += '<label class="xtra'+(A[st.extra.key]?' on':'')+'" id="xtra"><input type="checkbox" '
+      + (A[st.extra.key]?'checked':'')+'><span><span class="xt">'+st.extra.label+'</span>'
+      + '<span class="xd">'+st.extra.hint+'</span></span></label>';
+  }
+  if(st.type === 'multi'){
+    st.rows.forEach(rw=>{
+      h += '<div class="sublbl">'+rw.label+'</div>';
+      h += rw.type === 'tiles' ? tilesHTML(rw.opts, A[rw.key], rw.cols, 'data-k="'+rw.key+'"')
+                               : pillsHTML(rw.opts, A[rw.key], 'data-k="'+rw.key+'"'+(rw.num?' data-num="1"':''));
+    });
+  }
+
+  h += '<div class="nav">';
+  h += '<button class="btn gho" id="back"'+(S.i===0?' disabled':'')+'>Back</button>';
+  h += '<button class="btn pri" id="next">'+(S.i === vis.length-1 ? 'See the answer' : 'Next')+'</button>';
+  if(st.optional) h += '<button class="lnk" id="skip">'+(st.skipLabel||'Skip')+'</button>';
+  h += '<span class="kbd"><b>Enter</b> next &nbsp; <b>Esc</b> back</span>';
+  h += '</div></div>';
+  $('#view').innerHTML = h;
+
+  const inp = $('#inp');
+  if(inp){
+    inp.focus();
+    const upd = ()=>{
+      const v = parseFloat(inp.value);
+      A[st.key] = isNaN(v) ? null : v;
+      if(!isNaN(v)) said(st.key);
+      $('#alt').innerHTML = isNaN(v) ? '' :
+        (S.unit==='mm' ? '<b>'+(v/MM).toFixed(3).replace(/0+$/,'').replace(/\.$/,'')+'"</b> in imperial'
+                       : '<b>'+(v*MM).toFixed(2)+' mm</b> in metric')
+        + (st.key==='sh' ? ' &middot; '+(lt(v*(S.unit==='mm'?1:MM), F.MODEL_SPLIT_MM) ? 'F or T range' : 'G range') : '');
+      $('#next').disabled = isNaN(v) && !st.optional;
+      if(st.gauge) drawGauge();
+      renderBar();
+    };
+    inp.addEventListener('input', upd); upd();
+  }
+  $$('#view .tile,#view .pill,#view .pt').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const k = b.dataset.k, v = b.dataset.num ? +b.dataset.v : b.dataset.v;
+      A[k] = v; said(k);
+      if(k === 'pref') A.override = 'auto';   // a fresh pick clears any tech override
+      $$('#view [data-k="'+k+'"]').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      if(st.type === 'tiles' && !st.extra) setTimeout(next, 170);   // single-choice cards advance themselves
+      else if(st.type === 'tiles') validate();
+      else validate();
+    });
+  });
+  const xt = $('#xtra');
+  if(xt) xt.addEventListener('change', e=>{
+    A[st.extra.key] = e.target.checked; xt.classList.toggle('on', e.target.checked); renderBar();
+  });
+  if(st.type === 'riser') wireRiser();
+  const sk = $('#skip'); if(sk) sk.addEventListener('click', ()=>{ if(st.key) A[st.key]=null; else A.hz=null; next(); });
+  $('#back').addEventListener('click', prev);
+  $('#next').addEventListener('click', next);
+  validate();
+  setProg((S.i)/(vis.length));
+}
+function drawGauge(){
+  const g = $('#gauge'); if(!g) return;
+  if(A.sh == null){ g.innerHTML=''; return; }
+  const sh = toMM(A.sh);
+  /* scale: a bit either side of the F window so G-range readings still land on the track */
+  const LO = 6, HI = 26;
+  const pc = v => Math.max(0, Math.min(100, (v-LO)/(HI-LO)*100));
+  const inWin = !lt(sh, F.F_SH_MIN) && !lt(F.F_SH_MAX, sh);
+  let msg;
+  if(lt(sh, F.F_SH_MIN))       msg = '<span class="bad">Below the F floor.</span> Nothing gets the strings lower than '+both(F.F_SH_MIN)+'.';
+  else if(lt(F.F_SH_MAX, sh))  msg = '<span class="ok">Above the F window &rarr; G range.</span> An F would need a riser of about <b>'+dispMM(sh - F.F_SH_MID)+'</b> to sit mid-window.';
+  else {
+    const d = sh - F.F_SH_MID;
+    msg = '<span class="ok">Inside the F window.</span> '+(Math.abs(d)<0.6 ? 'Right around the middle, best case for adjustment.'
+        : (d>0 ? '<b>'+dispMM(d)+'</b> above the midpoint, so more room to lower than raise.'
+               : '<b>'+dispMM(-d)+'</b> below the midpoint, so more room to raise than lower.'));
+  }
+  g.innerHTML =
+    '<div class="gcap">F &amp; T window &middot; '+both(F.F_SH_MIN)+' to '+both(F.F_SH_MAX)+tierTag('ET')+'</div>'
+    + '<div class="gtrack">'
+    + '<div class="gwin" style="left:'+pc(F.F_SH_MIN)+'%;right:'+(100-pc(F.F_SH_MAX))+'%"></div>'
+    + '<div class="gmid" style="left:'+pc(F.F_SH_MID)+'%"></div>'
+    + '<div class="gpin'+(inWin?'':' out')+'" style="left:'+pc(sh)+'%"></div></div>'
+    + '<div class="glab"><span class="lo" style="left:'+pc(F.F_SH_MIN)+'%">'+dispMM(F.F_SH_MIN)+'</span>'
+    + '<span class="hi" style="left:'+pc(F.F_SH_MAX)+'%">'+dispMM(F.F_SH_MAX)+'</span></div>'
+    + '<div class="gnow">'+msg+'</div>';
+}
+
+function riserStepHTML(){
+  const u = S.unit==='mm' ? 'mm' : 'in';
+  let h = '<div class="sublbl">1 &middot; Drop the existing bridge until the strings just touch fret 12, then measure at the bridge</div>';
+  h += '<div class="numrow" style="max-width:260px;"><div class="numbox"><input type="number" id="hz" inputmode="decimal" step="0.1" placeholder="'+(S.unit==='mm'?'12':'0.472')+'" value="'+(A.hz==null?'':A.hz)+'"><span class="un">'+u+'</span></div></div>';
+  h += '<p class="sm" style="margin:-2px 0 4px;">This is the geometric floor for this neck and body. Zero action.</p>';
+  h += '<div class="sublbl">2 &middot; Action you want at the 12th fret</div>';
+  h += pillsHTML([{v:1.5875,t:'.0625"'},{v:1.7463,t:'.0688"'},{v:1.905,t:'.075"'}], toMM(A.act), 'data-k="act" data-mm="1"');
+  h += '<p class="sm" style="margin:-2px 0 4px;">Rosco band is <b>.0625" to .075"</b>. Anything outside that, type it in the bar above.'+tierTag('RG')+'</p>';
+  h += '<div class="rc" id="rcOut"></div>';
+  return h;
+}
+function riserPanelHTML(){
+  const c = riserCalc();
+  if(!c) return '<p class="sm">Enter the fret-12 touch height above and the numbers appear here.</p>';
+  let h = '';
+  h += '<div class="rr"><span class="k">Fret-12 touch height at the bridge</span><span class="v">'+both(c.hz)+'</span></div>';
+  h += '<div class="rr"><span class="k">Action wanted at fret 12</span><span class="v">'+both(c.act)+'</span></div>';
+  h += '<div class="rr"><span class="k">&times;2, because fret 12 is the string midpoint</span><span class="v">'+both(2*c.act)+'</span></div>';
+  h += '<div class="rr"><span class="k"><b>String height at the bridge, set up</b></span><span class="v">'+both(c.target)+'</span></div>';
+  h += '<div class="rr"><span class="k">F &amp; T window</span><span class="v">'+both(F.F_SH_MIN)+' &ndash; '+both(F.F_SH_MAX)+'</span></div>';
+  if(c.none){
+    h += '<div class="big bad"><div class="k">No riser</div><div class="v">Not needed</div>'
+       + '<div class="s">Set up at that action the strings land at '+both(c.target)+', which is '+(c.fitsBare?'inside':'below')+' the F window. '
+       + (c.fitsBare?'A bare F sits right.':'A riser would only push it further out of reach.')+'</div></div>';
+  } else if(c.tooThin){
+    h += '<div class="big bad"><div class="k">Riser</div><div class="v">'+both(c.idR)+'</div>'
+       + '<div class="s">Under the '+both(F.RISER_MIN_MM)+' floor. There is no stock worth making that thin, and it is inside measuring error anyway. Run the F bare and set the action on the bridge.'+tierTag('RG')+'</div></div>';
+  } else {
+    const applied = Math.abs(toMM(A.riser) - c.idR) < 0.02;
+    h += '<div class="big"><div class="k">Riser thickness, aim here</div><div class="v">'+both(c.idR)+'</div>'
+       + '<div class="s">Puts the bridge at the middle of its window ('+both(F.F_SH_MID)+'), so you have adjustment both ways. '
+       + 'Anything from <b>'+both(Math.max(0,c.loR))+'</b> to <b>'+both(c.hiR)+'</b> physically works, but the ends leave you nowhere to go.</div>'
+       + (applied
+          ? '<div class="s" style="color:var(--accent);font-weight:600;margin-top:9px;">&#10003; Applied to the depth table below.</div>'
+          : '<button class="btn pri btn-sm" id="useRiser" style="margin-top:11px;">Use this for the depths</button>')
+       + '</div>';
+    h += '<div class="msg" style="margin-top:11px;"><h5>Do not forget the back'+tierTag('RG')+'</h5>Whatever the riser adds on top, <b>the same amount comes off every backside route depth</b>. Set it in the riser field above and every depth in the table follows.</div>';
+  }
+  if(c.impliedAction != null){
+    const ia = c.impliedAction;
+    if(ia < 0){
+      h += '<div class="msg stop" style="margin-top:11px;"><h5>These two numbers disagree</h5>You entered a string height of <b>'+both(toMM(A.sh))+'</b> at the bridge, but a fret-12 touch height of <b>'+both(c.hz)+'</b>. The touch height is the floor, so it cannot be higher than the measured height. <b>One of them is wrong.</b></div>';
+    } else if(ia < F.ACTION_LO_MM - 0.25 || ia > F.ACTION_HI_MM + 0.25){
+      const hi = ia > F.ACTION_HI_MM;
+      h += '<div class="msg warn" style="margin-top:11px;"><h5>This guitar is not set up in the recommended band</h5>'
+        + 'Your measured string height (<b>'+both(toMM(A.sh))+'</b>) and the fret-12 touch height (<b>'+both(c.hz)+'</b>) imply it is currently sitting at about <b>'+both(ia)+'</b> of action at the 12th fret'
+        + ', which is '+(hi?'higher':'lower')+' than the '+inch(F.ACTION_LO_MM)+' to '+inch(F.ACTION_HI_MM)+' band.<br><br>'
+        + '<b>That matters, because the model call rides on the measured height.</b> '
+        + (hi ? 'A high action inflates the reading and can push a guitar into G range that is really an F.'
+              : 'A low action deflates the reading and can call an F on a guitar that really wants a G or a taller riser.')
+        + ' The riser number above uses the <i>target</i> action, not the current one, so it is the right number. The model badge at the end is the one to re-check.</div>';
+    } else {
+      h += '<div class="msg" style="margin-top:11px;"><h5>Setup cross-check passes</h5>Your two measurements imply the guitar is currently at about <b>'+both(ia)+'</b> at the 12th fret, inside the '+inch(F.ACTION_LO_MM)+' to '+inch(F.ACTION_HI_MM)+' band. The measured string height can be trusted for the model call.</div>';
+    }
+  }
+  h += '<div class="msg" style="margin-top:9px;"><h5>Where the &times;2 comes from'+tierTag('RG')+'</h5>Fret 12 is the midpoint of the string, so raising the bridge end by X only lifts the string over fret 12 by about X/2. To buy action A you need 2A at the bridge. First-order geometry, it ignores relief and fret height, so <b>check it on the bench before you cut the riser.</b></div>';
+  return h;
+}
+function wireRiser(){
+  const out = ()=>{
+    const el=$('#rcOut'); if(el) el.innerHTML = riserPanelHTML();
+    const ur=$('#useRiser');
+    if(ur) ur.addEventListener('click', ()=>{
+      const c = riserCalc(); if(!c) return;
+      A.riser = S.unit==='mm' ? +c.idR.toFixed(2) : +(c.idR/MM).toFixed(3);
+      said('riser'); render();
+    });
+    renderBar();
+  };
+  const hz = $('#hz');
+  if(hz) hz.addEventListener('input', ()=>{ const v=parseFloat(hz.value); A.hz = isNaN(v)?null:v; if(!isNaN(v)){said('hz');said('act');} out(); });
+  $$('#view .pill[data-k="act"]').forEach(b=>b.addEventListener('click',()=>{
+    A.act = S.unit==='mm' ? +b.dataset.v : +(+b.dataset.v/MM).toFixed(4); said('act');
+    $$('#view .pill[data-k="act"]').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); out();
+  }));
+  out();
+}
+
+function tilesHTML(opts, cur, cols, attr){
+  let h = '<div class="tiles c'+(cols||1)+'">';
+  opts.forEach(o=>{
+    h += '<button class="tile'+(cur===o.v?' sel':'')+'" '+attr+' data-v="'+o.v+'">'
+       + '<span class="ic">'+(IC[o.ic]||'')+'</span><span class="tb"><span class="tt">'+o.t+'</span>'
+       + (o.d?'<span class="td">'+o.d+'</span>':'')+'</span></button>';
+  });
+  return h+'</div>';
+}
+function pillsHTML(opts, cur, attr){
+  let h = '<div class="pillrow">';
+  opts.forEach(o=>{
+    const sel = (typeof o.v === 'number' && typeof cur === 'number') ? Math.abs(o.v-cur) < 0.01 : cur === o.v;
+    h += '<button class="pill'+(sel?' sel':'')+'" '+attr+' data-v="'+o.v+'">'+o.t+'</button>';
+  });
+  return h+'</div>';
+}
+function validate(){
+  const vis = visibleSteps(); const st = vis[S.i]; const btn = $('#next'); if(!btn||!st) return;
+  let ok = true;
+  if(st.type === 'num')   ok = st.optional || (A[st.key] != null);
+  if(st.type === 'tiles') ok = A[st.key] != null;
+  if(st.type === 'multi') ok = st.rows.every(r => A[r.key] != null);
+  if(st.type === 'riser') ok = true;
+  btn.disabled = !ok;
+}
+function next(){
+  const vis = visibleSteps(); const st = vis[S.i];
+  if(st && st.type !== 'tiles' && st.type !== 'riser'){
+    if(st.type === 'multi' && !st.rows.every(r=>A[r.key]!=null)) return;
+    if(st.type === 'num' && A[st.key]==null && !st.optional) return;
+  }
+  if(earlyStop()){ S.view='result'; return render(); }
+  const nv = visibleSteps();
+  if(S.i >= nv.length-1){ S.view='result'; S.seen=true; return render(); }
+  S.i++; render();
+}
+function prev(){ if(S.i>0){ S.i--; render(); } }
+function setProg(f){ $('#progBar').style.width = Math.max(3, Math.min(100, f*100)) + '%'; }
+
+/* ============================================================
+   ANSWER BAR  -  everything answered so far, always visible, editable in place
+   ============================================================ */
+const BAR = [
+  {k:'sh',   lab:'Height',  num:true},
+  {k:'bt',   lab:'Body',    num:true},
+  {k:'bridge',lab:'Bridge', map:{tom:'TOM / wrap',surface:'Surface',stringthru:'Thru-body',trem:'Floyd/Kahler',tremvintage:'Vintage trem',jazzmaster:'Jazzmaster',none:'None'}, step:'bridge'},
+  {k:'carve',lab:'Top',     map:{flat:'Flat',mild:'Mild carve',pron:'Pronounced'}, step:'body'},
+  {k:'constr',lab:'Build',  map:{solid:'Solid',chambered:'Chambered',semi:'Semi-hollow',hollow:'Hollow'}, step:'body'},
+  {k:'n',    lab:'Strings', plain:true, step:'strings'},
+  {k:'pref', lab:'You picked', map:{F:'F + riser',G:'G on the holes'}, step:'pref'},
+  {k:'pg',   lab:'Pickguard',map:{yes:'Yes',no:'No'}, step:'pg'},
+  {k:'pd',   lab:'Bezel',   num:true},
+  {k:'hz',   lab:'Fret-12 touch', num:true},
+  {k:'act',  lab:'Action at fret 12', num:true},
+  {k:'sp',   lab:'Spacing', num:true}
+];
+function renderBar(){
+  const bar = $('#abar'), box = $('#abarIn');
+  const any = BAR.some(b => A[b.k] != null && S.said[b.k]);
+  bar.classList.toggle('hide', !any || S.view === 'tech');
+  if(!any) return;
+  /* do not yank the field out from under the user mid-type */
+  const ae = document.activeElement;
+  if(ae && box.contains(ae)){
+    BAR.forEach(b=>{ if(!b.num) return;
+      const sec = box.querySelector('[data-sec="'+b.k+'"]');
+      if(sec && A[b.k]!=null) sec.textContent = S.unit==='mm' ? inch(toMM(A[b.k])) : fmt(toMM(A[b.k]))+' mm';
+    });
+    return;
+  }
+  const vis = visibleSteps(); const cur = vis[S.i];
+  let h = '';
+  BAR.forEach(b=>{
+    if(A[b.k] == null || !S.said[b.k]) return;
+    const isCur = cur && (cur.key === b.k || cur.id === b.step || (cur.id==='riser' && (b.k==='hz'||b.k==='act')));
+    if(b.num){
+      h += '<div class="ac'+(isCur?' cur':'')+'"><span class="al">'+b.lab+'</span><span class="av">'
+         + '<input type="number" step="0.1" data-bk="'+b.k+'" value="'+A[b.k]+'">'
+         + ' <span class="sec" data-sec="'+b.k+'">'+(S.unit==='mm'?inch(toMM(A[b.k])):fmt(toMM(A[b.k]))+' mm')+'</span></span></div>';
+    } else {
+      const txt = b.plain ? A[b.k] : (b.map[A[b.k]] || A[b.k]);
+      h += '<button class="ac btn'+(isCur?' cur':'')+'" data-bstep="'+b.step+'"><span class="al">'+b.lab
+         + '</span><span class="av">'+txt+'</span></button>';
+    }
+  });
+  box.innerHTML = h;
+  box.querySelectorAll('input[data-bk]').forEach(i=>{
+    i.addEventListener('input', ()=>{
+      const v = parseFloat(i.value); A[i.dataset.bk] = isNaN(v) ? null : v; if(!isNaN(v)) said(i.dataset.bk);
+      const sec = box.querySelector('[data-sec="'+i.dataset.bk+'"]');
+      if(sec && !isNaN(v)) sec.textContent = S.unit==='mm' ? inch(toMM(v)) : fmt(toMM(v))+' mm';
+      repaintForBar();
+    });
+    i.addEventListener('keydown', e=>{ if(e.key==='Enter') i.blur(); });
+  });
+  box.querySelectorAll('[data-bstep]').forEach(btn=>btn.addEventListener('click',()=>{
+    const vs = visibleSteps(); const i = vs.findIndex(x=>x.id===btn.dataset.bstep);
+    if(i>=0){ S.i=i; S.view='flow'; render(); }
+  }));
+}
+/* live repaint of whatever is on screen, without stealing focus from the bar */
+let barTimer=null;
+function repaintForBar(){
+  clearTimeout(barTimer);
+  barTimer = setTimeout(()=>{
+    if(S.view === 'result')      renderResult();
+    else if(S.view === 'tech')   renderTech();
+    else { drawGauge(); const el=$('#rcOut'); if(el) el.innerHTML = riserPanelHTML();
+           const inp=$('#inp'); const vs=visibleSteps(); const st=vs[S.i];
+           if(inp && st && A[st.key]!=null && document.activeElement!==inp) inp.value = A[st.key]; }
+    renderQuestions();
+    $$('#view .qflag').forEach(b=>b.addEventListener('click',()=>openDrawer(b.dataset.q)));
+  }, 200);
+}
+
+/* ============================================================
+   RENDER - RESULT
+   ============================================================ */
+function renderResult(){
+  const r = evaluate();
+  const cls = r.status==='go' ? 'go' : (r.status==='no' ? 'no' : 'cond');
+  const lbl = r.status==='go' ? 'Good candidate' : (r.status==='no' ? 'Stop' : 'Candidate, with conditions');
+  let h = '<div class="step">';
+
+  h += '<div class="vd '+cls+'"><div class="vl">'+lbl+'</div><div class="vm">'+r.headline+'</div>'
+     + '<div class="vw">'+r.why+'</div></div>';
+
+  if(r.status !== 'no'){
+    h += '<div class="stats">';
+    h += '<div class="st hl"><div class="k">Order this</div><div class="v">'+r.modelLabel+'<small>'+r.n+' string'+(A.scale==='multi'?', multiscale':'')+'</small></div></div>';
+    h += '<div class="st"><div class="k">Riser</div><div class="v">'+(r.rearRiser>0?dispMM(r.rearRiser):'None')
+       + '<small>'+(r.rearRiser>0?'custom rear back-plate riser':'body is thick enough')+'</small></div></div>';
+    h += '<div class="st"><div class="k">Install type</div><div class="v" style="font-size:16px;">'
+       + (r.routeThrough?'Route through body':'Standard')
+       + '<small>'+(r.routeThrough?'needs an F or T back plate to cover':'pockets recess normally')+'</small></div></div>';
+    h += '<div class="st"><div class="k">Old holes</div><div class="v" style="font-size:16px;">'+r.holes+'</div></div>';
+    h += '</div>';
+  }
+
+  /* accordions, collapsed by default except the things that stop work */
+  const stops = r.stops.concat(r.msgs.filter(m=>m.k==='stop'));
+  const warns = r.msgs.filter(m=>m.k==='warn');
+  const notes = r.msgs.filter(m=>!m.k);
+  const msgHTML = m => '<div class="msg '+(m.k||'')+'"><h5>'+m.h+tierTag(m.t)+qFlag(m.q)+'</h5>'+m.b+'</div>';
+
+  if(stops.length) h += acc('stop','Blockers', stops.length, stops.map(msgHTML).join(''), true);
+
+  if(r.fork) h += acc('warn','Two ways to do this one', 'choose', forkHTML(r), true);
+
+  if(r.status !== 'no' && r.holesBody && r.bridge!=='trem' && r.bridge!=='tremvintage'){
+    h += acc('','The old bridge holes', '', '<div class="msg"><h5>'+r.holes+tierTag(r.holesTier)+'</h5>'+r.holesBody+'</div>', false);
+  }
+  if(warns.length) h += acc('warn','Watch out for', warns.length, warns.map(msgHTML).join(''), warns.length<=2);
+  if(notes.length) h += acc('','Worth knowing', notes.length, notes.map(msgHTML).join(''), false);
+
+  if(r.status !== 'no' && r.needsFrontRiser){
+    h += acc('','About the riser plate','',
+      '<div class="msg"><h5>What it is'+tierTag('RG')+'</h5>A plate that sits between the guitar top and the bridge, radiused underneath to follow a carved top. It lifts the bridge to where it can reach your action, and it hides the old bridge holes so they never need plugging or finishing.</div>'
+      + '<div class="msg"><h5>How thick</h5>Worked out at the bench, from a measurement taken with the existing bridge dropped right down. <b>Nothing for you to measure.</b> Rosco makes the plate to suit the guitar.</div>', false);
+  }
+  if(r.status !== 'no'){
+    h += acc('','Ballpark cost', '', '<div class="msg"><h5>Not a quote'+qFlag('Q6')+'</h5>Reference points from recent jobs: F6 bridge <b>$450 CAD</b>, install <b>$450 CAD</b>. Hole fill, riser plate and finish work sit on top and vary a lot'+(r.fork?', which is exactly what the fork above decides':'')+'. Rate card EverTune rows are still placeholders, so this stays internal until they are filled.</div>', false);
+  }
+
+  h += '<div class="actions">';
+  if(r.status !== 'no') h += '<button class="btn pri" id="toTech">Install steps &rarr;</button>';
+  h += '<button class="btn gho" id="share">Copy link</button>';
+  h += '<button class="btn gho" id="print">Print</button>';
+  h += '<button class="btn gho" id="again">Start over</button>';
+  h += '</div></div>';
+
+  $('#view').innerHTML = h;
+  setProg(1);
+  wireResult(r);
+  return r;
+}
+function acc(kind, title, cnt, body, open){
+  return '<details class="acc '+kind+'"'+(open?' open':'')+'><summary>'+CHEV
+       + (kind?'<span class="dot d-'+kind+'"></span>':'<span class="dot d-ok"></span>')
+       + title + (cnt!==''&&cnt!=null?'<span class="cnt">'+cnt+'</span>':'') + '</summary><div class="body">'+body+'</div></details>';
+}
+function forkHTML(r){
+  const tomish = (r.bridge==='tom'||r.bridge==='wrap');
+  let h = '<div class="msg">This guitar sits in G range with '+(tomish?'an existing '+(r.bridge==='tom'?'tune-o-matic':'wraparound'):'a carved top')+'. <b>Both paths work.</b> The difference is cosmetic and cost, and it is the customer\'s call. Price them separately and let them choose.'+tierTag('RG')+'</div>';
+  h += '<div class="fork"><div class="fc"><h4>G model</h4><ul>'
+     + '<li><b>Height</b> works seamlessly, no riser. This is what G is for.</li>'
+     + (tomish?'<li><b>Old posts must be plugged and finished.</b> Added cost, and on a retrofit the plugs are never invisible.</li>':'<li>No riser to make.</li>')
+     + '<li>Faceplate sits as flush as the carve allows. A small edge gap is normal.</li></ul></div>'
+     + '<div class="fc"><h4>F + Rosco rounded riser</h4><ul>'
+     + '<li><b>Riser makes up the height</b>, bottom radiused to the carve.</li>'
+     + (tomish?'<li><b>Riser covers the old holes.</b> Clean, no finish work on them.</li>':'<li>Riser seats properly on the carve.</li>')
+     + '<li>Must be <b>3-sided, front open</b>, so nothing blocks the saddles rising. Its height gets added to every backside route depth.</li></ul></div></div>';
+  if(tomish) h += '<div class="msg warn" style="margin-top:10px;"><h5>The tiebreaker'+qFlag('Q8')+'</h5>If the old post holes <b>do not fall clear of the EverTune\'s own mounting holes and route</b>, plugging is compromised and <b>F + riser becomes the recommendation</b>. The tool cannot compute that yet, the geometry is locked in EverTune\'s CAD sheets. Check it on the bench.</div>';
+  h += '<div class="msg" style="margin-top:10px;"><h5>Taking the F + riser path?</h5>Go to <b>Install steps</b> and set <b>Model &rarr; Force F</b> with a riser height. Every depth follows it.</div>';
+  return h;
+}
+function wireResult(r){
+  $$('#view .chip').forEach(c=>c.addEventListener('click',()=>{
+    const id = c.dataset.jump; const vis = visibleSteps();
+    const i = vis.findIndex(s=>s.id===id); if(i>=0){ S.i=i; S.view='flow'; render(); }
+  }));
+  const t=$('#toTech'); if(t) t.addEventListener('click',()=>{ S.view='tech'; render(); });
+  const a=$('#again'); if(a) a.addEventListener('click',()=>{
+    Object.assign(A,{sh:null,bt:null,bridge:null,carve:null,pg:null,pd:null,sp:null,constr:'solid',n:6,scale:'fixed',override:'auto',riser:0});
+    S.i=0; S.view='flow'; render();
+  });
+  const p=$('#print'); if(p) p.addEventListener('click',()=>{ $$('.acc').forEach(x=>x.open=true); setTimeout(()=>window.print(),80); });
+  const sh=$('#share'); if(sh) sh.addEventListener('click',()=>{
+    const q=new URLSearchParams();
+    ['sh','bt','pd','sp'].forEach(k=>{ if(A[k]!=null) q.set(k,A[k]); });
+    q.set('br',A.bridge); q.set('co',A.constr); q.set('cv',A.carve);
+    q.set('n',A.n); q.set('sc',A.scale); if(A.pg) q.set('pg',A.pg); q.set('u',S.unit); q.set('go','1');
+    navigator.clipboard.writeText(location.origin+location.pathname+'?'+q).then(()=>{
+      sh.textContent='Copied'; setTimeout(()=>sh.textContent='Copy link',1500); });
+  });
+}
+
+/* ============================================================
+   RENDER - TECH
+   ============================================================ */
+function renderTech(){
+  if(!S.tech){
+    $('#view').innerHTML = '<div class="step"><div class="lock">'
+      + '<h1 class="q" style="font-size:28px;">Install mode is for the bench</h1>'
+      + '<p>Router depths and the template sequence. Unlock with <code>?tech=1</code> on the URL, or a passcode.</p>'
+      + '<div class="r"><input type="password" id="tp" placeholder="passcode" autocomplete="off">'
+      + '<button class="btn pri" id="tg">Go</button></div>'
+      + '<div style="margin-top:22px;"><button class="lnk" id="tback">Back to the result</button></div></div></div>';
+    $('#tg').addEventListener('click',()=>{ if($('#tp').value.trim()){ S.tech=true; save(); render(); } });
+    $('#tp').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#tg').click(); });
+    $('#tback').addEventListener('click',()=>{ S.view='result'; render(); });
+    $('#tp').focus(); setProg(1);
+    return;
+  }
+  const r  = evaluate();
+  const bt = r.bt, rh = toMM(A.riser), isG = r.model === 'G';
+  let h = '<div class="step">';
+  h += '<div class="eyebrow">Install mode</div>';
+  h += '<h1 class="q">'+r.modelLabel+' into a '+dispMM(bt)+' body</h1>';
+  h += '<p class="qs">Depths below are computed for this guitar. Tick as you go, it saves in the browser.</p>';
+
+  /* controls */
+  h += '<div class="sublbl">Model</div>';
+  h += pillsHTML([{v:'auto',t:'Auto'},{v:'F',t:'Force F'},{v:'G',t:'Force G'}], A.override, 'data-k="override"');
+  h += '<p class="sm" style="margin-top:-2px;">Auto follows string height. <b>Force F</b> is the fork: F model plus a riser on a G-range guitar, usually to hide old TOM holes.'+tierTag('RG')+'</p>';
+  h += '<div class="sublbl">Riser height</div>';
+  h += '<div class="numrow" style="max-width:220px;"><div class="numbox"><input type="number" id="rh" value="'+(A.riser||0)+'" step="0.1" inputmode="decimal"><span class="un">'+(S.unit==='mm'?'mm':'in')+'</span></div></div>';
+  h += '<p class="sm">Rosco front riser plate. 0 if none. Whatever it adds gets added to every backside depth.'+tierTag('RG')+'</p>';
+  if(A.carve === 'pron'){
+    h += '<div class="sublbl">Top route method</div>';
+    h += pillsHTML([{v:'tpl',t:'Templates'},{v:'cnc',t:'CNC first route'}], A.method, 'data-k="method"');
+    h += '<p class="sm">Pronounced carve. CNC is the safer call, but it is blocked on workholding.'+qFlag('Q9')+'</p>';
+  }
+
+  if(r.overridden && r.byPref){
+    h += '<div class="msg" style="margin-top:18px;"><h5>Customer picked the '+r.model+'</h5>String height of '+both(r.sh)+' would auto-call <b>'+r.autoModel+'</b>. They chose <b>'+r.model+'</b> on the preference card, which is a valid choice, not an override. '
+      + (r.model==='F' ? 'Size the riser below.' : 'The old holes get plugged and finished.')+'</div>';
+  } else if(r.overridden){
+    h += '<div class="msg warn" style="margin-top:18px;"><h5>Model overridden by hand'+tierTag('RG')+'</h5>String height of '+both(r.sh)+' calls for <b>'+r.autoModel+'</b>, you have forced <b>'+r.model+'</b>. '
+      + (r.model==='F' ? 'The riser makes up the height and every backside depth below moves with it.' : 'Double check this is what you want.')+'</div>';
+  }
+  if(r.overridden && r.model==='F' && rh<=0){
+    h += '<div class="msg stop"><h5>F on a G-range guitar with no riser height set</h5>String height is '+both(r.sh)+', which is G range. The riser is what makes up that difference, and its height has to be added to every backside depth. <b>Set it above before you cut anything.</b></div>';
+  }
+  if(r.status === 'no'){
+    h += '<div class="msg stop"><h5>This guitar failed the candidacy check</h5>'+r.why+'</div>';
+  }
+
+  /* ---- front riser sizing, bench work ---- */
+  if(r.model === 'F'){
+    h += '<div class="h2">Front riser sizing</div>';
+    h += '<p class="sm" style="margin-bottom:10px;">Drop the existing bridge until the strings just touch fret 12, then measure string height at the bridge. That is the geometric floor. Action is assumed at <b>'+inch(F.ACTION_DEFAULT_MM)+'</b>, change it if the customer wants otherwise.</p>';
+    h += '<div class="sublbl">Fret-12 touch height at the bridge</div>';
+    h += '<div class="numrow" style="max-width:230px;"><div class="numbox"><input type="number" id="hz" inputmode="decimal" step="0.1" placeholder="'+(S.unit==='mm'?'12':'0.472')+'" value="'+(A.hz==null?'':A.hz)+'"><span class="un">'+(S.unit==='mm'?'mm':'in')+'</span></div></div>';
+    h += '<div class="sublbl">Target action at fret 12</div>';
+    h += pillsHTML([{v:1.5875,t:'.0625\"'},{v:1.7463,t:'.0688\"'},{v:1.905,t:'.075\"'}], toMM(A.act), 'data-k="act" data-mm="1"');
+    h += '<div class="rc" id="rcOut" style="margin-top:14px;"></div>';
+  }
+
+  /* ---- depths ---- */
+  h += '<div class="h2">Router depths</div>';
+  h += '<div class="msg"><h5>The rule'+tierTag('ET')+'</h5><b>All EverTune depths are measured from the top of the guitar, even for bottom routes.</b> So a back route\'s cut depth is <b>body thickness &minus; spec</b>. Top routes plunge straight to the number.</div>';
+
+  const rows = isG ? [
+    {tpl:'G1',        w:'Insert recess',            f:'plunge', spec:MM*0.125, note:'stops the finish popping'},
+    {tpl:'G1',        w:'Insert holes, 25/64" drill',f:'plunge', spec:MM*0.750},
+    {tpl:'G2 / G2X',  w:'Pocket, Forstner rough',   f:'plunge', spec:MM*1.625},
+    {tpl:'G2 / G2X',  w:'Pocket, dressed floor',    f:'plunge', spec:MM*1.8125},
+    {tpl:'G3X',       w:'Front guide',              f:'top',    spec:MM*1.8125},
+    {tpl:'G4X',       w:'Back pocket, rough',       f:'top',    spec:MM*0.625},
+    {tpl:'G4X',       w:'Back pocket, dressed',     f:'top',    spec:MM*0.500},
+    {tpl:'G5X',       w:'Back cover recess',        f:'none',   spec:null, q:'Q11', note:'no number published'}
+  ] : [
+    {tpl:'F / T TOP 2',w:'Top pocket',              f:'plunge', spec:MM*1.000, note:'"at least one inch deep into the body"'},
+    {tpl:'F&T BOT 2',  w:'Smaller pocket',          f:'top',    spec:MM*1.700},
+    {tpl:'F&T BOT 2',  w:'Larger pocket',           f:'top',    spec:MM*1.000},
+    {tpl:'F&T BOT 3',  w:'Pocket',                  f:'top',    spec:MM*0.850},
+    {tpl:'F&T BOT 4',  w:'Pocket',                  f:'top',    spec:MM*0.250, q:'Q2'}
+  ];
+  h += '<div class="tw"><table class="dp"><thead><tr><th>Template</th><th>Route</th><th>Spec</th><th>Datum</th><th>Set the router to</th></tr></thead><tbody>';
+  rows.forEach(x=>{
+    let cut, datum;
+    if(x.spec === null){ cut='<span style="color:var(--dim);font-weight:600;">Measure the plate</span>'; datum='&mdash;'; }
+    else if(x.f === 'plunge'){ cut='<span class="n">'+both(x.spec)+'</span>'; datum='plunge from top'; }
+    else {
+      const v = bt - x.spec + rh;
+      datum='from top';
+      cut = v <= 0
+        ? '<span style="color:var(--bad);font-weight:700;">'+both(v)+'</span><small style="color:var(--bad);">negative, body too thin for this spec</small>'
+        : '<span class="n">'+both(v)+'</span>'+(rh>0?'<small>incl. '+dispMM(rh)+' riser</small>':'');
+    }
+    h += '<tr><td><b>'+x.tpl+'</b>'+qFlag(x.q)+'</td><td>'+x.w+(x.note?'<span class="sub">'+x.note+'</span>':'')
+       + '</td><td>'+(x.spec===null?'&mdash;':both(x.spec))+'</td><td class="sub" style="color:var(--muted);font-size:11.5px;">'+datum+'</td><td class="n">'+cut+'</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  if(rh > 0) h += '<div class="msg" style="margin-top:10px;"><h5>Riser correction applied'+tierTag('RG')+'</h5>Every <b>from top</b> row has had <b>'+dispMM(rh)+'</b> added, because the riser lifts the bridge by that much and the pocket follows it down. Ticket 22417, confirmed on the Gretsch at 6mm. Plunge rows unaffected.</div>';
+  h += '<div class="msg" style="margin-top:10px;"><h5>Worked check'+tierTag('ET')+'</h5>EverTune\'s own examples at a 1.750" body: 1.700"&rarr;0.050", 1.000"&rarr;0.750", 0.850"&rarr;0.900", 0.250"&rarr;1.500". All four are body minus spec.</div>';
+
+  /* ---- sequence, grouped into phases ---- */
+  h += '<div class="h2">Sequence</div>';
+  const G = buildSteps(r, bt, rh, isG);
+  let done=0, total=0;
+  G.forEach(ph=>ph.items.forEach(()=>total++));
+  G.forEach(ph=>ph.items.forEach((it,i)=>{ if(S.steps[ph.key+i]) done++; }));
+  h += '<p class="sm" style="margin-bottom:12px;">'+done+' of '+total+' done</p>';
+  G.forEach(ph=>{
+    const d = ph.items.filter((it,i)=>S.steps[ph.key+i]).length;
+    let b = '';
+    ph.items.forEach((it,i)=>{
+      const k = ph.key+i, ck = !!S.steps[k];
+      b += '<div class="ck'+(it.br?' br':'')+(ck?' done':'')+'" data-k="'+k+'">'
+         + '<input type="checkbox" '+(ck?'checked':'')+'>'
+         + '<div><div class="cl">'+it.tpl+qFlag(it.q)+'</div><div class="ct">'+it.txt+'</div>'
+         + (it.meta?'<div class="cm">'+it.meta+'</div>':'')+'</div></div>';
+    });
+    h += acc(d===ph.items.length?'':'', ph.name, d+'/'+ph.items.length, b, d < ph.items.length);
+  });
+
+  /* ---- dimension quick reference ---- */
+  h += '<div class="h2">Dimensions, quick reference</div>';
+  const DIMS = isG ? [
+    ['Faceplate width',            '2.747"', '69.78'],
+    ['E-to-e string spacing',      '2.047"', '52.00'],
+    ['Post / stud spacing shown',  '3.250"', '82.55'],
+    ['Overall across the anchors', '3.781"', '96.03'],
+    ['Front of bridge frame, G',   '0.390"', '9.91'],
+    ['Front of bridge frame, GL',  '0.794"', '20.16'],
+    ['Limiting dim, typical install','2.396"','60.85'],
+    ['Limiting dim, extremely thin','2.093"','53.16']
+  ] : [
+    ['Faceplate width',            '3.197"', '81.20'],
+    ['E-to-e string spacing',      '2.047"', '52.00'],
+    ['Faceplate, front of origin', '2.776"', '70.50'],
+    ['Faceplate, behind origin',   '2.291"', '58.20'],
+    ['F model front, from origin', '0.406"', '10.30'],
+    ['Corner radius',              'R .197"','5.00'],
+    ['String height, low setting', '0.350"', '8.89'],
+    ['String height, high setting','0.532"', '13.51'],
+    ['Limiting dim for thickness', '2.098"', '53.29'],
+    ['Minimum body thickness',     '1.750"', '44.45']
+  ];
+  let dh = '<div class="tw"><table class="dp"><thead><tr><th>Dimension</th><th>Inch</th><th>mm</th></tr></thead><tbody>';
+  DIMS.forEach(d=>{ dh += '<tr><td>'+d[0]+'</td><td class="n">'+d[1]+'</td><td class="n">'+d[2]+'</td></tr>'; });
+  dh += '</tbody></table></div>';
+  dh += '<div class="msg" style="margin-top:10px;"><h5>Saddle heights are at the E strings'+tierTag('ET')+'</h5>Both drawings note: <b>"saddle heights shown for low and high E strings, other strings can go higher, based on a 400mm radius."</b> Measure string height at an <b>E string</b>, not in the middle of the neck, or the reading comes out high.</div>';
+  if(isG) dh += '<div class="msg warn" style="margin-top:9px;"><h5>G string-height window not read yet'+qFlag('Q12')+'</h5>The F&amp;T sheet gives .350" and .532" plainly. The equivalent pair on the G sheet has not been pinned down, so the tool has no G window. The two G limiting dimensions above are solid.</div>';
+  h += acc('','Bridge dimensions', isG?'ET001 G / GL':'ET001 F&T', dh, false);
+
+  h += '<div class="actions">';
+  h += '<button class="btn gho" id="rst">Reset ticks</button>';
+  h += '<button class="btn gho" id="prn">Print</button>';
+  h += '<button class="btn gho" id="bck">&larr; Back to result</button>';
+  h += '</div></div>';
+  $('#view').innerHTML = h;
+  setProg(1);
+
+  $$('#view .pill').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.k; A[k]=b.dataset.v; render();
+  }));
+  const rhi = $('#rh');
+  if(rhi) rhi.addEventListener('input', ()=>{ const v=parseFloat(rhi.value); A.riser = isNaN(v)?0:v; renderTechDebounced(); });
+  if($('#rcOut')) wireRiser();
+  $$('#view .ck input').forEach(cb=>cb.addEventListener('change',e=>{
+    const row=e.target.closest('.ck'); S.steps[row.dataset.k]=e.target.checked;
+    row.classList.toggle('done', e.target.checked); save();
+  }));
+  $('#rst').addEventListener('click',()=>{ S.steps={}; save(); render(); });
+  $('#prn').addEventListener('click',()=>{ $$('.acc').forEach(x=>x.open=true); setTimeout(()=>window.print(),80); });
+  $('#bck').addEventListener('click',()=>{ S.view='result'; render(); });
+}
+let rtTimer=null;
+function renderTechDebounced(){ clearTimeout(rtTimer); rtTimer=setTimeout(()=>{ const f=document.activeElement; const p=f&&f.selectionStart; render(); const n=$('#rh'); if(n){n.focus(); try{n.selectionStart=n.selectionEnd=p;}catch(e){}} },260); }
+
+function buildSteps(r, bt, rh, isG){
+  const adj = d => d + rh;
+  const P = [];
+  const ph = (name,key)=>{ const o={name,key,items:[]}; P.push(o); return o; };
+  const add = (o,tpl,txt,meta,opt)=>o.items.push(Object.assign({tpl,txt,meta},opt||{}));
+
+  const p0 = ph('Prep','p0');
+  add(p0,'Strip','Remove the old bridge, pickups and anything else in the way. <b>The neck stays attached to the body</b> for the whole install.','ET');
+  add(p0,'Datum','Find true scale length. Mark the neck centreline and connect it to the scale-length mark. Every template registers to this crossing.','ET');
+  if(r.bridge==='trem'||r.bridge==='tremvintage')
+    add(p0,'Fill','Glue wood into the old trem cavity and let it cure <b>before</b> routing the EverTune. Match finish where you can.','RG sequencing, ET confirms the fill');
+  if(r.bridge==='tom'||r.bridge==='wrap')
+    add(p0,'Fill','Cut finish-matched donor plugs and plug the old post holes. 1/2" and 1/4" plug cutters. Watch for <b>9/16" posts</b> on Gretsch style guitars.','RG / ET');
+
+  if(!isG){
+    const p1 = ph('Top routes','p1');
+    if(A.carve==='pron' && A.method==='cnc'){
+      add(p1,'CNC','Machine the first top route on the CNC, datumed off the centreline crossing the scale-length line. Skip the TOP template stack for this route. The machined floor gives every later template a true surface.','RG, blocked on workholding',{br:true,q:'Q9'});
+      add(p1,'TOP 1X / 1','Still mount the TOP stack to locate and drill the four thru-holes, unless the CNC did them in the same setup.','open: CNC scope',{br:true,q:'Q9'});
+    } else {
+      add(p1,'F&T TOP 1X','Mount TOP 1X to the top of the body in position.','ET');
+      add(p1,'F&T TOP 1','Mount TOP 1 right on top of it.','ET');
+    }
+    add(p1,'Drill','Drill four holes all the way through the body. <b>#7 bit, .201" / 5.11mm.</b>','ET');
+    add(p1,'Chamfer','Chamfer the thru-holes to take the finish off the hole edge and stop chipping.','ET');
+    add(p1,(r.model==='T'?'T':'F')+' TOP 2','Double-sided tape to the top, two #7 bits in the rear two holes as alignment pins. Route the top pocket <b>'+both(MM)+' minimum</b> into the body.','ET');
+    if(r.model==='F' && A.pg==='no'){
+      add(p1,'F TOP 2','No pickguard: Dremel the required chamfer at the front edge.','ET, F only, no pickguard',{br:true});
+      add(p1,'F web','The 1/4" web between bridge pocket and pickup pocket <b>stays</b>, and gets a <b>1/2" chamfer on the bottom</b> so it clears the modules. <b>Do this before routing the bottom of the guitar.</b>','ET, F only, no pickguard',{br:true});
+    }
+    if(r.model==='F' && A.pg==='yes')
+      add(p1,'F web','Pickguard fitted: the 1/4" web between the pockets <b>can be removed</b>. You may have to trim the pickguard.','ET, F only, pickguard',{br:true});
+
+    const p2 = ph('Back routes','p2');
+    add(p2,'F&T BOT 1','Flip. Mount BOT 1 to the back, aligned on the drill bits.','ET');
+    add(p2,'Drill','Drill the backplate pilot holes. <b>1/16" / 1.59mm.</b>','ET');
+    add(p2,'Chamfer','Chamfer the pilots to <b>1/8" / 3.2mm or more</b> so the finish does not crack.','ET');
+    add(p2,'F&T BOT 2','Mount to the back using the <b>four 1/16" drill bits</b> to align it. <b>Space it off the back with two thinner templates, one at each end.</b>','ET - this is the spacer step');
+    add(p2,'F&T BOT 2','Route the <b>smaller</b> pocket. Router set to <b>'+both(adj(bt-MM*1.700))+'</b>.','spec 1.700" from top');
+    add(p2,'F&T BOT 2','Same template again, route the <b>larger</b> pocket. Router set to <b>'+both(adj(bt-MM*1.000))+'</b>.','spec 1.000" from top');
+    add(p2,'F&T BOT 3','Align and mount. Route the pocket. Router set to <b>'+both(adj(bt-MM*0.850))+'</b>.','spec 0.850" from top');
+    if(r.model === 'F')
+      add(p2,'F&T BOT 4','<b>F routes only.</b> This additional template is required. Route to <b>'+both(adj(bt-MM*0.250))+'</b>.','ET: "For F routes, this additional template is required"',{br:true});
+  } else {
+    const p1 = ph('Inserts and top pocket','p1');
+    add(p1,'G1','Mount G1, larger holes to the rear, on the scale and centreline marks. Cut an <b>1/8" deep recess</b> with a 1/2" bit first so the finish does not pop. Then drill <b>25/64", about 3/4" deep</b> and install the threaded inserts with the driver tool.','ET, all G routes use a 1/2" bearing-guided bit');
+    add(p1,'G2 / G2X','Mount G2, then G2X on top with double-sided tape. Forstner out the route area to about <b>'+both(MM*1.625)+'</b>, clean the edges, then dress the floor flat to about <b>'+both(MM*1.8125)+'</b>.','ET');
+    add(p1,'G2 / G2X','Cut 1/2" and 1/4" donor plugs, glue them in, trim the excess with a thin saw.','ET');
+    const p2 = ph('Back routes','p2');
+    add(p2,'G3X','Transfer-punch the pocket corners, drill <b>3/16"</b> through, mount G3X on those holes. Front guide to <b>'+both(MM*1.8125)+' from top</b>, router set to <b>'+both(adj(bt-MM*1.8125))+'</b>. Rear guide routes through the back into the top pocket.','ET');
+    add(p2,'G4X','Forstner to <b>'+both(MM*0.625)+' from top</b> (router <b>'+both(adj(bt-MM*0.625))+'</b>), then dress flat to <b>'+both(MM*0.5)+' from top</b> (router <b>'+both(adj(bt-MM*0.5))+'</b>).','ET');
+    add(p2,'G5X','Stack G2/G2X sideways as one spacer and G3X/G4X sideways as a second. Mount G5X and route the back cover recess. <b>Depth is not published, measure your cover plate.</b>','ET says only "appropriate for recessed back cover plate"',{q:'Q11'});
+  }
+
+  const p3 = ph('Assembly','p3');
+  if(!isG) add(p3,'Fit','Slip the pre-assembled bridge in from the top, four mounting lugs into the four holes. Secure from below with the two <b>Mounting Plates (10017)</b> and four <b>Mounting Screws (10031)</b>. The EverTune tool tightens them.','ET');
+  else     add(p3,'Fit','Ground wire between faceplate and guitar top. Bridge in from the top on <b>two mounting bolts</b>. Foot plate, then back plates.','ET');
+  if(r.routeThrough) add(p3,'Cover','Route-through-body install, so it needs an <b>F or T model back plate</b> to cover the pocket on the back.','ET',{br:true});
+  if(r.bridge==='trem'||r.bridge==='tremvintage')
+    add(p3,'Cover','Guitar was routed for a traditional tremolo, so you <b>must use the asymmetrical F-style backplate</b> to cover the old route.','ET, verbatim',{br:true});
+  else if(!isG)
+    add(p3,'Cover','No previous trem route, so you have the option of the <b>symmetrical T-style backplate</b> instead of the asymmetrical F one.','ET');
+  if(rh>0) add(p3,'Riser','Fit the rounded-bottom riser plate. <b>3-sided, front open</b>, so nothing blocks the saddles rising. Confirm the modules clear at full action height before final assembly.','RG, ticket 22417',{br:true});
+  if(!isG) add(p3,'Ground','Trap the bare ground wire under the <b>Foot Plate (10015)</b> as you screw it down with screws <b>(10033)</b>. A mounting screw works too. Just keep the wire clear, the modules have to move freely in the cavity.','ET');
+  add(p3,'Backplate','Backplate on, <b>six screws (10038)</b>. Current bridges ship with a <b>single string-feed hole</b> instead of six, seven or eight. Cosmetic only, Aug 2026, no install impact.','ET');
+  add(p3,'Setup','Set action with the 2.5mm hex key, counter-clockwise raises, clockwise lowers. <b>Any action change means you must reset the bend sensitivity.</b> Half a turn is about 15 cents. Zone 2 is in spec if pitch moves less than 7 cents from playing position to a half turn down.','ET');
+  return P;
+}
+
+/* ============================================================
+   QUESTIONS DRAWER
+   ============================================================ */
+function renderQuestions(){
+  QUESTIONS.forEach(q=>{ if(q.done && S.qdone[q.id] === undefined) S.qdone[q.id] = true; });
+  let r; try{ r = evaluate(); }catch(e){ r = {}; }
+  let h='', live=0, open=0;
+  QUESTIONS.forEach(q=>{
+    let hit=false; try{ hit = A.sh!=null && !!q.hit(r); }catch(e){}
+    const done = !!S.qdone[q.id];
+    if(!done) open++;
+    if(hit && !done) live++;
+    h += '<div class="qi'+(hit&&!done?' hit':'')+(done?' res':'')+'" id="qi-'+q.id+'">'
+       + '<div class="qh"><span class="qid">'+(done?'&#10003; ':'')+q.id+'</span>'
+       + '<span class="qb'+(q.block==='v0.1'?' b1':'')+'">blocks '+q.block+'</span></div>'
+       + '<div class="qt">'+q.t+'</div>'
+       + '<div class="qm">'+q.m+(hit&&!done?' <span class="live">&#9873; This guitar depends on it.</span>':'')+'</div>'
+       + '<textarea class="qn" data-q="'+q.id+'" placeholder="answer / note...">'+esc(S.notes[q.id]||'')+'</textarea>'
+       + '<label class="qc"><input type="checkbox" data-qd="'+q.id+'" '+(done?'checked':'')+'> settled, lock the rule in</label>'
+       + '</div>';
+  });
+  $('#qList').innerHTML = h;
+  const b = $('#qBadge');
+  b.textContent = live ? live : open;
+  b.style.background = live ? 'var(--dim)' : 'var(--muted)';
+  $$('#qList .qn').forEach(t=>t.addEventListener('input',e=>{ S.notes[e.target.dataset.q]=e.target.value; save(); }));
+  $$('#qList input[data-qd]').forEach(c=>c.addEventListener('change',e=>{ S.qdone[e.target.dataset.qd]=e.target.checked; save(); renderQuestions(); }));
+}
+function openDrawer(id){
+  $('#drw').classList.add('on'); $('#scrim').classList.add('on');
+  if(id) setTimeout(()=>{ const el=$('#qi-'+id); if(el) el.scrollIntoView({block:'center'}); },120);
+}
+function closeDrawer(){ $('#drw').classList.remove('on'); $('#scrim').classList.remove('on'); }
+
+/* ============================================================
+   PLUMBING
+   ============================================================ */
+function save(){ try{ localStorage.setItem('rg-et2', JSON.stringify({
+  steps:S.steps, notes:S.notes, qdone:S.qdone, theme:S.theme, unit:S.unit, tech:S.tech })); }catch(e){} }
+function load(){ try{
+  const j=JSON.parse(localStorage.getItem('rg-et2')||'{}');
+  S.steps=j.steps||{}; S.notes=j.notes||{}; S.qdone=j.qdone||{};
+  if(j.theme) S.theme=j.theme; if(j.unit) S.unit=j.unit; if(j.tech) S.tech=j.tech;
+}catch(e){} }
+
+function render(){
+  if(S.view==='flow')        renderFlow();
+  else if(S.view==='result') renderResult();
+  else                       renderTech();
+  renderBar();
+  renderQuestions();
+  $$('#view .qflag').forEach(b=>b.addEventListener('click',()=>openDrawer(b.dataset.q)));
+  window.scrollTo({top:0,behavior:S.view==='flow'?'auto':'smooth'});
+}
+
+function readURL(){
+  const p=new URLSearchParams(location.search);
+  if(p.get('u')==='in') S.unit='in';
+  const n=k=>{ if(p.has(k)){ const v=parseFloat(p.get(k)); if(!isNaN(v)) return v; } return null; };
+  if(n('sh')!=null) A.sh=n('sh'); if(n('bt')!=null) A.bt=n('bt');
+  if(n('pd')!=null) A.pd=n('pd'); if(n('sp')!=null) A.sp=n('sp');
+  if(p.has('br')) A.bridge = (p.get('br')==='wrap' ? 'tom' : p.get('br'));
+  if(p.has('co')) A.constr=p.get('co');
+  if(p.has('cv')) A.carve=p.get('cv');
+  if(p.has('pg')) A.pg=p.get('pg');
+  if(p.has('n'))  A.n=parseInt(p.get('n'))||6;
+  if(p.has('sc')) A.scale=p.get('sc');
+  const urlKey={sh:'sh',bt:'bt',pd:'pd',sp:'sp',bridge:'br',constr:'co',carve:'cv',pg:'pg',n:'n'};
+  Object.keys(urlKey).forEach(k=>{ if(p.has(urlKey[k]) && A[k]!=null) said(k); });
+  if(p.get('tech')) S.tech=true;
+  if(p.get('go') && A.sh!=null && A.bt!=null && A.bridge && A.carve){ S.view='result'; }
+  if(p.get('tech') && p.get('go')) S.view='tech';
+}
+
+load();
+document.body.classList.toggle('dark', S.theme==='dark');
+$('#themeBtn').textContent = S.theme==='dark' ? 'Light' : 'Dark';
+readURL();
+$('#unitBtn').textContent = S.unit;
+$('#unitBtn').classList.toggle('on', S.unit==='in');
+
+$('#themeBtn').addEventListener('click',()=>{
+  document.body.classList.toggle('dark');
+  S.theme = document.body.classList.contains('dark')?'dark':'light';
+  $('#themeBtn').textContent = S.theme==='dark'?'Light':'Dark'; save();
+});
+$('#unitBtn').addEventListener('click',()=>{
+  const to = S.unit==='mm'?'in':'mm';
+  switchUnit(to);
+  $('#unitBtn').textContent=to; $('#unitBtn').classList.toggle('on',to==='in');
+  save(); render();
+});
+$('#home').addEventListener('click',()=>{ S.view='flow'; S.i=0; render(); });
+$('#qBtn').addEventListener('click',()=>openDrawer());
+$('#qClose').addEventListener('click',closeDrawer);
+$('#scrim').addEventListener('click',closeDrawer);
+$('#qClear').addEventListener('click',()=>{ if(confirm('Clear your question notes?')){ S.notes={}; S.qdone={}; save(); renderQuestions(); } });
+$('#qCopy').addEventListener('click',()=>{
+  let t='# RG EverTune Tool - open questions\n\n';
+  QUESTIONS.forEach(q=>{
+    t+='## '+q.id+(S.qdone[q.id]?' (SETTLED)':'')+' - blocks '+q.block+'\n'+q.t+'\n\n_'+q.m+'_\n';
+    if(S.notes[q.id]) t+='\n**Answer:** '+S.notes[q.id]+'\n';
+    t+='\n';
+  });
+  navigator.clipboard.writeText(t).then(()=>{ $('#qCopy').textContent='Copied'; setTimeout(()=>$('#qCopy').textContent='Copy',1500); });
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ if($('#drw').classList.contains('on')) return closeDrawer(); if(S.view==='flow') prev(); }
+  if(e.key==='Enter' && S.view==='flow' && !e.shiftKey){
+    const b=$('#next'); if(b && !b.disabled){ e.preventDefault(); next(); }
+  }
+});
+render();
+</script>
+</body>
+</html>
