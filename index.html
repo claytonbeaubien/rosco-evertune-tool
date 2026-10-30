@@ -316,6 +316,8 @@ const RULES={
   pitch:10.4,                              // ET: saddle pitch, average, saddles float
   spOut:[2.5,4.0],                         // RG: old bridge narrower, outer strings move OUT toward the fretboard edges. Total mm, ok / flag. Clayton OK 2026-10-30
   spIn:[4.5,6.0],                          // RG: old bridge wider, strings move IN (vintage Strat 56.4 lands at +4.4). Pole alignment, not edge risk
+  gReach:53.16,                           // ET: G hardware reaches 2.093" below the body top (ET001 G, limiting thickness for extremely thin guitars). Thinner body = modules stand proud of the back
+  gStd:53.3,                               // ET: 2.1" or more = standard install, both back covers recessed
   depths:[{k:'TOP 2',d:25.4,top:true,note:'Main pocket, at least 25.4 into the body'},
           {k:'BOT 4',d:6.35,note:'F only'},
           {k:'BOT 3',d:21.6,note:''},
@@ -345,6 +347,8 @@ let pick=null, rAuto=true, bAuto=true;   // pick = bridge the user chose over th
 const fOf=n=>n===6?'F6':'F'+n;
 const autoTop=(model,H)=>MODELS[model].riser?clamp(half(H-RULES.fMid),0,RULES.topRiserMax):0;  // riser that centres the F window on the string
 const gOf=bz=>bz!=null&&bz>RULES.gLongAt?'GL':'G';
+// G on a thin body: hardware reaches gReach below the top, so it stands proud of the back by gReach - T. RG: riser plate under a full F/T backplate (Clayton's thin-body G).
+const gBack=(T,H)=>{const need=T<RULES.gReach?halfUp(RULES.gReach-T):0, gate=halfUp(Math.max(0,RULES.gateStack+0.05-T-H));return {need,gate,prot:Math.max(0,r2(RULES.gReach-T)),auto:Math.max(need,gate)};};
 function backOf(T,R,H){
   // Back of the body. d = design recess depth (BOT 2 small). Cut the footplate's own thickness so it sits flush,
   // unless that puts the footplate more than footTol off design. Whatever stands proud of the back face sets the back cover riser.
@@ -383,10 +387,11 @@ function calc(){
   const rAutoVal=autoTop(model,H);
   const R=M.riser?(rAuto?rAutoVal:clamp(num('r'),0,RULES.topRiserMax)):0;
   const bk=backOf(T,R,H);
-  const B=fam==='F'?(bAuto?bk.auto:Math.max(0,num('b'))):0;
+  const gb=gBack(T,H);
+  const B=bAuto?(fam==='F'?bk.auto:gb.auto):Math.max(0,num('b'));
   if(rAuto||!M.riser) $('r').value=R;
-  if(bAuto||fam!=='F') $('b').value=B;
-  const recR=autoTop(recModel,H), recBk=MODELS[recModel].fam==='F'?backOf(T,recR,H):null, recB=recBk?recBk.auto:0;
+  if(bAuto) $('b').value=B;
+  const recR=autoTop(recModel,H), recBk=MODELS[recModel].fam==='F'?backOf(T,recR,H):null, recB=recBk?recBk.auto:(rec.model==='none'?0:gb.auto);
   const eff=T+R, stack=T+B+H;
   const win=RULES.win[fam].map(v=>v+(fam==='F'?R:0)), mid=(win[0]+win[1])/2;
   // string spacing vs the EverTune saddle pitch
@@ -401,7 +406,7 @@ function calc(){
   if(spC==='bad') errs.sp=`${spd>0?'+':''}${r1(spd)} mm vs the ${M.name} (about ${r1(et)}). Outer strings move ${spd>0?'in':'out'} ${r1(Math.abs(spd)/2)} per side, past the ${spL[1]} mm limit. ${spd>0?'Check pole alignment and feel.':'Check where the outer strings land on the fretboard edges.'}`;
   return {n,H,T,act,sp,bz,spL,finish:$('finish').value,hand:$('hand').value,job:$('job').value.trim(),client:$('client').value.trim(),guitar:$('guitar').value.trim(),oldb:$('oldb').value.trim(),model,M,fam,tele:!!M.tele,R,B,eff,rAutoVal,
     cut:bk.cut,shim:bk.shim,protrusion:bk.prot,rearNeeded:bk.prot>0.05,rearMin:bk.need,gateMin:bk.gate,
-    stack,win,mid,errs,rec,recModel,recR,recB,recBk,et,spd,spC};
+    stack,win,mid,errs,rec,recModel,recR,recB,recBk,et,spd,spC,gb};
 }
 
 function verdicts(s){
@@ -449,7 +454,13 @@ function verdicts(s){
     out.push({c,h:'G or G Long',p});
   }
   let rc='ok',rp;
-  if(s.fam==='G'){rp='G mounts on inserts and a recessed back cover. Not modelled yet.';}
+  if(s.fam==='G'){
+    const g=s.gb;
+    if(s.T>=RULES.gReach){rp=s.T>=RULES.gStd?`Body <span class="num">${r1(s.T)}</span>, 53.3 or more: standard G install, both back covers recessed (G5X).`:`Body <span class="num">${r1(s.T)}</span> is under 53.3: route-through install, a full F/T backplate covers the back. Hardware just clears the back face, no riser.`;
+      if(s.B>0){rc='warn';rp+=` <span class="num">${r1(s.B)} mm</span> riser entered anyway, confirm intended.`;}}
+    else{rp=`Body <span class="num">${r1(s.T)}</span>: route-through, and the modules stand <span class="num">${r2(g.prot)} mm</span> proud of the back (G hardware reaches 53.16 below the top). Riser plate minimum <span class="num">${r1(g.need)} mm</span> under a full F/T backplate.${bAuto?'':` Yours <span class="num">${r1(s.B)}</span>.`}`;
+      if(s.B<g.need){rc='bad';rp+=' Under the minimum.';} else if(s.B>RULES.rearRiserMax){rc='warn';rp+=' Over 6 mm, bulky on the back, client approval.';}}
+  }
   else if(s.rearNeeded){
     rp=`Footplate recess <span class="num">${r2(s.cut)} mm</span>${s.shim>0?` plus a <span class="num">${r2(s.shim)} mm</span> shim`:''}, footplate stands <span class="num">${r2(s.protrusion)} mm</span> proud of the back face. Back cover riser minimum <span class="num">${r1(s.rearMin)} mm</span> so the backplate clears.${bAuto?'':` Yours <span class="num">${r1(s.B)}</span>.`}`;
     if(s.B<s.rearMin){rc='bad';rp+=' Under the minimum.';}
@@ -507,8 +518,9 @@ function sequence(s){
     add('G3X','Transfer-punch the pocket corners, drill 3/16" through, mount G3X','through','through');
     add('G3X','Front guide route','46.0',thru?'through':r2(T-46),'From the back');
     add('G3X','Rear guide route','through','through','Through the back into the top pocket');
-    add('G4X','Forstner to about 5/8", dress flat','12.7',r2(T-12.7),'From the back');
-    add('G5X','Back cover recess, G2/G2X and G3X/G4X stacked sideways as spacers','not published','',std?'Body 53.3 or more: both back covers recessed':'Under 53.3: route-through install, F/T backplate covers the back',{warn:!std});
+    add('G4X','Back pocket: Forstner to about 5/8", dress flat','12.7',r2(T-12.7),'From the back. Rosco: route it all out to the main pocket, the back cover covers it');
+    if(std) add('G5X','Back cover recess, G2/G2X and G3X/G4X stacked sideways as spacers','not published','','Body 53.3 or more: both back covers recessed');
+    else add('Back','Route-through install: no G5X recess',s.B>0?`riser ${r1(s.B)}`:'','',s.B>0?`Back cover riser ${r1(s.B)} mm (modules stand ${r2(s.gb.prot)} proud), full F/T backplate over it`:'Under 53.3: a full F/T backplate covers the back',{warn:true});
     add('Install','Ground wire between faceplate and top. Bridge in on the two bolts');
     add('Install','Foot plate, back plates');
   }
@@ -543,7 +555,8 @@ function sheet(s,vs){
     ['Footplate recess',s.cut>0?`<span class="big">${r2(s.cut)} mm</span> deep (BOT 2 small)`:'No cut'],
     ['Footplate shim',s.shim>0?`<span class="big">${r2(s.shim)} mm</span>`:'None'],
     ['Back cover riser',s.B>0?`<span class="big">${r1(s.B)} mm</span> thick, the length of the backplate, window for the footplate`:'None']]
-    :[['Top riser','None on a G'],['Back cover','Recessed G back cover (G5X). '+(s.T>=53.3?'Standard install.':'Body under 53.3: route-through, F/T backplate.')]];
+    :[['Top riser','None on a G'],['Back cover',s.T>=RULES.gStd?'Recessed G back covers (G5X). Standard install.':'Route-through: full F/T backplate'],
+      ['Back cover riser',s.B>0?`<span class="big">${r1(s.B)} mm</span> thick, under the full backplate`:'None']];
   const flags=vs.filter(v=>v.c==='bad'||v.c==='warn');
   const id=r=>`done-${s.fam}-${s.seq.indexOf(r)}`;
   $('sheet').innerHTML=`<div class="sh">
@@ -581,10 +594,10 @@ function draw(s){
   // body with pockets (evenodd)
   let d=`M${mx(uL)} ${y0} H${mx(uR)} V${back} H${mx(uL)} Z `;
   if(m==='F'){
-    d+=`M${mx(101.6)} ${back} V${clampY(ft+21.6*S)} H${mx(55.9)} V${clampY(ft+6.35*S)} H${mx(19.1)} L${mx(6.4)} ${clampY(ft+1.8*S)} V${y0} H${mx(-61)} V${back} Z `; // one outline: BOT 3, BOT 4 web and chamfer, main pocket through
+    d+=`M${mx(101.6)} ${back} V${clampY(ft+21.6*S)} H${mx(60.3)} V${clampY(ft+6.35*S)} H${mx(19.1)} L${mx(6.4)} ${clampY(ft+1.8*S)} V${y0} H${mx(-54.6)} V${clampY(ft+25.4*S)} H${mx(-58.4)} V${back} Z `; // one outline, ET001 F7 body route 2017e01 read 2026-10-30: BOT 3 101.6 to 60.3 ahead at 21.6, BOT 4 web to 19.1 at 6.35, chamfer to 1.8 at 6.4 ahead (TOP 2 front edge), TOP 2 rear wall 54.6 behind down to 25.4, BOT 2 large rear wall 58.4 behind
     if(s.cut>0) d+=`M${mx(101.6)} ${back} V${back-s.cut*S} H${mx(76.2)} V${back} Z `;                        // footplate recess (ears)
   }else{
-    d+=`M${mx(101.6)} ${back} V${clampY(y0+12.7*S)} H${mx(44.5)} V${clampY(y0+6.35*S)} H${mx(19.1)} L${mx(8)} ${clampY(y0+1.8*S)} V${y0} H${mx(-42)} V${back} H${mx(-6)} V${clampY(y0+46*S)} H${mx(8)} V${back} Z `; // one outline, double step like the F: G4X from the back to 1/2 from top (101.6 to 44.5, ET001 G section), second step 6.35 + chamfer (F BOT 4 numbers, RG, confirm), G2X main pocket, G3X rear route
+    d+=`M${mx(101.6)} ${back} V${clampY(y0+12.7*S)} H${mx(8)} V${y0} H${mx(-42)} V${back} H${mx(-6)} V${clampY(y0+46*S)} H${mx(8)} V${back} Z `; // Rosco method (Clayton 2026-10-30): back pocket routed out from the back to 1/2" from the top (G4X depth, ET) all the way to the main pocket, back cover over it. No second step. EverTune's default instead routes from the top with a 1/2" ledge on the nut side and only a small oval back cover recess on the back.
   }
   g.push(`<path d="${d}" fill="url(#wood)" stroke="var(--wood-line)" stroke-width="1.2" fill-rule="evenodd"/>`);
   txt(mx(uL)+6,back-6,`body ${r1(T)}`,{c:'var(--ink)',s:11});
@@ -595,7 +608,7 @@ function draw(s){
   const hl=(base,cmds,o={})=>hw(base,cmds,'none','var(--metal-line)',{open:1,w:o.w||.8,op:o.op||.7});
   const tele=s.tele, fFront=tele?70.5:10.3, gF=s.M.long?20.2:13.7;
   if(m==='F'){
-    if(R>0){rect(mx(-45),ft,(58.2-45)*S,R*S,'url(#riserhatch)','var(--riser-line)');rect(mx(fFront),ft,(fFront+45)*S,R*S,'none','var(--riser-line)',{d:'3 3'});if(R>=2)txt(mx(fFront)+4,ft+R*S/2+3,'sides only, front open (3-sided)',{s:9,c:'var(--riser-line)'});txt(mx(-59)+5,ft+R*S/2+4,`top riser ${r1(R)}`,{s:10,c:'var(--riser)'});}
+    if(R>0){rect(mx(-54.6),ft,(58.2-54.6)*S,R*S,'url(#riserhatch)','var(--riser-line)');rect(mx(fFront),ft,(fFront+54.6)*S,R*S,'none','var(--riser-line)',{d:'3 3'});if(R>=2)txt(mx(fFront)+4,ft+R*S/2+3,'sides only, front open (3-sided)',{s:9,c:'var(--riser-line)'});txt(mx(-59)+5,ft+R*S/2+4,`top riser ${r1(R)}`,{s:10,c:'var(--riser)'});}
     if(tele){
       hw(ft,[['M',70.5,0],['L',70.5,2.1],['Q',70.5,2.8,69.8,2.8],['L',9,2.8],['L',9,0]]);
       hw(ft,[['M',58.4,2.8],['L',58.4,3.9],['L',23.7,5.8],['L',23.7,2.8]],'var(--panel2)');      // bridge pickup, slanted, seen from the side
@@ -657,12 +670,16 @@ function draw(s){
         line(mx(uL)-4,yy,mx(uL)-18,yy,sh?'var(--warn)':'var(--metal-line)');
         txt(mx(uL)-22,yy+4,`${dd.k.replace(' large',' L').replace(' small',' S')} ${sh?'shim '+r2(s.shim):r2(rd)}`,{s:10,a:'end',c:sh?'var(--warn)':'var(--mute)'});
       }
-      txt(mx(-61)-4,y0+14,'through',{s:10,a:'end'});
+      txt(mx(-58.4)-4,y0+14,'through',{s:10,a:'end'});
     }
   }else{
-    if(callouts){txt(mx(-42)-4,clampY(y0+46*S)+12,`G2X floor 46${46>T?' (through)':''}`,{s:10,a:'end'});for(const [dd,k] of [[12.7,'G4X 12.7'],[6.35,'step 6.35']]){line(mx(uL)-4,y0+dd*S,mx(uL)-18,y0+dd*S,'var(--metal-line)');txt(mx(uL)-22,y0+dd*S+4,k,{s:10,a:'end'});}}
+    if(callouts){txt(mx(-42)-4,clampY(y0+46*S)-5,`G2X floor 46${46>T?' (through)':''}`,{s:10,a:'end'});for(const [dd,k] of [[12.7,'back pocket 12.7']]){line(mx(uL)-4,y0+dd*S,mx(uL)-18,y0+dd*S,'var(--metal-line)');txt(mx(uL)-22,y0+dd*S+4,k,{s:10,a:'end'});}}
     if(s.bz!=null){line(mx(s.bz),y0-30*S,mx(s.bz),y0,'var(--warn)','4 3',1.5);txt(mx(s.bz)-4,y0-30*S+10,'pickup bezel',{s:10,a:'end',c:'var(--warn)'});}
-    txt(mx(uL),back+16,'G cutout schematic: G4X 1/2 from top (ET001 G), front step at the F BOT 4 depth. G body 53.2 (thin) to 60.9 (typical).',{s:10});
+    if(s.B>0){const xa=mx(104),xb=mx(-64),rh=s.B*S,by=back+rh;
+      g.push(`<path d="M${xa} ${back} H${xb} V${by} H${xa} Z" fill="url(#riserhatch)" stroke="var(--riser-line)" stroke-width="1"/>`);
+      rect(xa,by,xb-xa,1.2*S,'var(--metal)','var(--metal-line)',{op:.6});
+      txt(mx(52),by+1.2*S+13,`back cover riser ${r1(s.B)}, full F/T backplate`,{s:10,c:'var(--riser)'});}
+    txt(mx(uL),back+(s.B>0?s.B*S+1.2*S+28:16),'G cutout, Rosco method: back pocket routed out to 1/2 from the top, back cover over it. G body 53.2 (thin) to 60.9 (typical).',{s:10});
   }
   // scale line and string
   line(X0,62,X0,back+34,'var(--mute)','2 3');txt(X0+4,58,'scale line',{s:10});
@@ -670,7 +687,7 @@ function draw(s){
   txt(mx(uL)-6,ty-5,`string ${r1(s.H)} @ ${r1(s.act)} action`,{s:11,c:'var(--bad)',w:500});
 
   // stack line under the section. The plan view is the bridge photo below the drawing now.
-  const secBottom=back+Math.max(s.B,0)*S+(m==='F'&&s.B>0?52:40);
+  const secBottom=back+Math.max(s.B,0)*S+(s.B>0?52:40);
   txt(mx(uL),secBottom+8,`stack: body ${r1(s.T)} + back cover riser ${r1(s.B)} + string ${r1(s.H)} = ${r1(s.stack)} mm, gate > 53.`,{s:11,c:s.stack>53?'var(--ok)':'var(--bad)'});
   const hh=Math.ceil(secBottom+20);
   $('svg').setAttribute('viewBox',`0 0 ${W} ${hh}`);
@@ -691,9 +708,9 @@ function run(){const s=calc();
   $('bzWrap').style.display=s.fam==='G'?'':'none';
   // risers: auto buttons, locked where the bridge takes none
   $('r').disabled=$('rAuto').disabled=!s.M.riser; $('rAuto').setAttribute('aria-pressed',String(rAuto||!s.M.riser));
-  $('b').disabled=$('bAuto').disabled=s.fam!=='F'; $('bAuto').setAttribute('aria-pressed',String(bAuto||s.fam!=='F'));
+  $('bAuto').setAttribute('aria-pressed',String(bAuto));
   $('rHint').textContent=s.M.riser?'Only what stands proud of the body top. Max 6.':s.tele?'Not used on a T, the plate wraps the bridge pickup.':'Not used on a G for now.';
-  $('bHint').textContent=s.fam==='F'?'How far the footplate stands proud of the back. Over 6 needs client OK.':'G uses a recessed back cover. Not modelled yet.';
+  $('bHint').textContent=s.fam==='F'?'How far the footplate stands proud of the back. Over 6 needs client OK.':'G under 53.2: modules stand proud of the back. Riser plate under a full F/T backplate.';
   // spacing hint, flagged as soon as it is typed
   const sh=$('spHint');
   if(s.sp==null){sh.className='hint';sh.textContent=`Old bridge, centre to centre. The ${s.M.name} is about ${r1(s.et)}.`;}
