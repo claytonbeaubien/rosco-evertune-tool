@@ -6,12 +6,17 @@ Enter the string height at the bridge and the body thickness, and the tool recom
 
 **Live tool:** https://claytonbeaubien.github.io/rosco-evertune-tool/
 
-## What it does (v0.1)
+## What it does (v0.2)
 
-- **Recommend mode** picks F / T or G and sizes the top riser and back cover riser. **Manual mode** lets you try the other bridge or your own riser numbers and see what changes.
-- **Section drawing** at the centreline with the F7 routing geometry, one saddle on the string, the saddle window, risers and the footplate. Top view with pocket, holes and saddles for 6, 7 or 8 strings.
-- **Verdicts:** candidacy stack, saddle window, top riser, back of the body.
-- **Router depth table** for the F / T sequence with done checkboxes. Prints clean.
+- **Strings first.** Pick 6, 7 or 8 and the bridge list only shows what exists: F, T, G and G Long on a 6, F7 on a 7, F8 on an 8.
+- **Always recommending.** Enter string height and body thickness and it picks the bridge and sizes the top riser and back cover riser. Pick a different bridge and the risers resize for it. Type your own riser numbers to experiment; the flags show what breaks, and auto puts them back.
+- **String spacing check** against the EverTune saddle pitch, flagged as soon as it is typed. Strings moving out toward the fretboard edges are held tighter than strings moving in.
+- **G or G Long** from the full scale length point to the back edge of the bridge pickup bezel (0.55" / 14 mm or less is standard).
+- **Bridge photo** for the model, finish (black by default) and, on a T, handedness.
+- **Section drawing** at the centreline with the routes, risers, footplate and saddle window.
+- **Install sequence** for the F / T or G templates with this guitar's router settings and done checkboxes.
+- **Bench sheet:** Print gives a two-page job sheet: specs, parts to make (riser and shim thicknesses), flags, the sequence with tick boxes, the section and notes lines.
+- **URL prefill** (`?job=J273&client=...&guitar=...&n=7&h=11&t=42&sp=64.5`), the hook for linking from a job record.
 
 ## Measuring string height
 
@@ -41,7 +46,7 @@ Every rule is tagged in the tool:
 
 Where EverTune publishes nothing, the tool says so rather than inventing a number.
 
-## Not yet in v0.1
+## Not yet
 
 - G model depths (the G section is schematic; EverTune publishes no G routing sheet).
 - F6, T and F8 routing sheets (the drawing uses F7 geometry; depths are the same).

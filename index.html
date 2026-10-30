@@ -65,7 +65,11 @@ h1 span{color:var(--accent)}
 .seg button{font:500 13px var(--sans);padding:7px 14px;border:0;background:var(--panel);color:var(--mute);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .locked input,.locked select{opacity:.75}
-.recbadge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:1px 5px;margin-left:6px}
+.recbadge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:1px 5px;margin-right:4px}
+.recbadge.pick{color:var(--warn);border-color:var(--warn)}
+button.link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit}
+button.auto:disabled,input:disabled,select:disabled{opacity:.45;cursor:not-allowed}
+.hint.bad{color:var(--bad)} .hint.warn{color:var(--warn)} .hint.ok{color:var(--ok)}
 .v.rec{border-color:var(--accent);background:var(--accent-soft);grid-column:1/-1}
 .v.rec p{font-size:15px}
 .v.rec .alt{margin-top:6px;font-size:13px;color:var(--mute)}
@@ -90,7 +94,7 @@ tr.isdone td{opacity:.5;text-decoration:line-through}
 tr.isdone td:first-child{opacity:1;text-decoration:none}
 input.done{width:18px;height:18px;accent-color:var(--accent)}
 @media print{:root{--bg:#fff;--panel:#fff;--panel2:#fff;--ink:#111;--mute:#444;--line:#999;--wood:#eee;--wood-line:#555;--metal:#ccc;--metal-line:#333;--accent:#0b7a70;--accent-ink:#fff;--accent-soft:#eef;--ok-soft:#f3f3f3;--warn-soft:#f3f3f3;--bad-soft:#f3f3f3;color-scheme:light}
-  body{padding:0;font-size:12px}.seg,.hint,.legend,footer,#callouts,h2 label{display:none!important}.panel,.step{border-color:#999;break-inside:avoid}.steps{grid-template-columns:repeat(3,1fr)}input,select{border:1px solid #999}.wrap{gap:10px}}
+  body{padding:0;font-size:12px}.seg,.hint,.legend,footer,#callouts,h2 label,button.auto,button.link{display:none!important}.panel,.step{border-color:#999;break-inside:avoid}.steps{grid-template-columns:repeat(3,1fr)}input,select{border:1px solid #999}.wrap{gap:10px}}
 .tier{font-family:var(--mono);font-size:11px;padding:1px 5px;border-radius:3px;border:1px solid var(--line);color:var(--mute);vertical-align:middle}
 .tier.et{border-color:var(--ok);color:var(--ok)}
 .tier.rg{border-color:var(--accent);color:var(--accent)}
@@ -107,16 +111,17 @@ footer ul{margin:6px 0 0;padding-left:18px}
 <div class="wrap">
 <header>
   <h1><span>Rosco</span> EverTune Routing Tool</h1>
-  <span class="eyebrow">Rosco Guitars · v0.1 · mm</span>
-  <div class="seg" role="group" aria-label="Mode" style="margin-left:auto">
-    <button type="button" id="modeRec" aria-pressed="true">Recommend</button><button type="button" id="modeMan" aria-pressed="false">Manual</button>
-  </div>
+  <span class="eyebrow">Rosco Guitars · v0.1.1 · mm</span>
+  <button type="button" class="auto" id="reset" style="margin-left:auto">Reset to recommended</button>
 </header>
 
 <section class="steps">
   <div class="step">
     <h2><i>1</i> Measure the guitar</h2>
     <p class="sub">Before the old bridge comes off. Original body top is the datum.</p>
+    <label><b>Strings</b>
+      <select id="strings"><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option></select>
+      <span class="hint">Sets the bridge list. T, G and G Long are 6-string only.</span></label>
     <label class="req"><b>String height at bridge</b>
       <div class="row"><input type="number" id="h" step="0.1" min="5" max="19.5" value="11" required><span class="unit">mm</span></div>
       <span class="err" id="hErr"></span>
@@ -127,31 +132,32 @@ footer ul{margin:6px 0 0;padding-left:18px}
     <label><b>Reference action at the 12th fret</b>
       <div class="row"><input type="number" id="act" step="0.1" min="0.5" max="4" value="1.6"><span class="unit">mm</span></div>
       <span class="hint">1/16" is 1.6. Recorded so the measurement is repeatable.</span></label>
+    <label><b>String spacing, E to e at the bridge</b>
+      <div class="row"><input type="number" id="sp" step="0.1" min="30" max="100" placeholder="optional"><span class="unit">mm</span></div>
+      <span class="err" id="spErr"></span>
+      <span class="hint" id="spHint">Centre of the low E to centre of the high e on the old bridge.</span></label>
   </div>
   <div class="step" id="step2">
-    <h2><i>2</i> Pick the model</h2>
-    <p class="sub" id="sub2">Recommend mode picks this for you. Switch to Manual to try the other bridge.</p>
-    <label><b>Model</b>
-      <select id="model"><option value="auto">Recommended</option><option value="F">F / T</option><option value="G">G</option></select></label>
-    <label id="styleWrap"><b>Plate style</b>
-      <select id="style"><option value="F">F, standard faceplate</option><option value="T">T, Tele plate with the bridge pickup</option></select>
-      <span class="hint">Same routes and depths. Changes the drawing only.</span></label>
-    <label><b>Strings</b>
-      <select id="strings"><option value="6">6 (F / T / G)</option><option value="7" selected>7 (F7)</option><option value="8">8 (F8)</option></select>
-      <span class="hint">Changes pocket width and hole spacing in the top view only. Depths are the same.</span></label>
+    <h2><i>2</i> Bridge</h2>
+    <p class="sub">Recommended from your numbers. Pick another and the risers resize to suit it.</p>
+    <label><b>Bridge</b>
+      <select id="model"></select></label>
     <div class="hint" id="modelNote"></div>
+    <label id="bzWrap"><b>Scale line to bridge pickup bezel</b>
+      <div class="row"><input type="number" id="bz" step="0.1" min="0" max="80" placeholder="optional"><span class="unit">mm</span></div>
+      <span class="hint">Settles G or G Long. Up to 14 is G, over 14 is G Long trimmed to fit.</span></label>
   </div>
   <div class="step" id="step3">
     <h2><i>3</i> Risers</h2>
-    <p class="sub" id="sub3">Recommend mode sizes these. Switch to Manual to experiment.</p>
+    <p class="sub">Sized for the bridge automatically. Type a number to try your own, auto puts it back.</p>
     <label><b>Top riser, height at the scale line</b>
-      <div class="row"><input type="number" id="r" step="0.5" min="0" max="6" value="0"><span class="unit">mm</span></div>
+      <div class="row"><input type="number" id="r" step="0.5" min="0" max="6" value="0"><span class="unit">mm</span><button type="button" class="auto" id="rAuto" aria-pressed="true">auto</button></div>
       <span class="err" id="rErr"></span>
-      <span class="hint">Only material proud of the body top. Max 6. A flush fill of an old recess is 0.</span></label>
+      <span class="hint" id="rHint"></span></label>
     <label><b>Back cover riser</b>
-      <div class="row"><input type="number" id="b" step="0.5" min="0" max="12" value="0"><span class="unit">mm</span></div>
+      <div class="row"><input type="number" id="b" step="0.5" min="0" max="12" value="0"><span class="unit">mm</span><button type="button" class="auto" id="bAuto" aria-pressed="true">auto</button></div>
       <span class="err" id="bErr"></span>
-      <span class="hint">Equal to how far the footplate stands proud of the back face. Goes around the footplate. Over 6 needs client approval.</span></label>
+      <span class="hint" id="bHint"></span></label>
   </div>
 </section>
 
@@ -183,6 +189,9 @@ footer ul{margin:6px 0 0;padding-left:18px}
     <li><span class="tier et">ET</span> F/T minimum body 44.45 mm (1 3/4"); under that the footplate mounts on a custom back plate riser. F and F7 Model pages.</li>
     <li><span class="tier rg">RG</span> Top riser shifts the whole F window up by its height, and adds to every backside depth. Max 6 mm measured at the scale line; above that the bridge fouls the bridge pickup, and F + 6 is the G window anyway. 3-sided, front open (Zendesk 22417).</li>
     <li><span class="tier rg">RG</span> Back of the body: route the footplate's own thickness (2 mm assumed, confirm) so it sits flush. The footplate may sit up to 1 mm off its design position, so the recess is pulled back toward design only when it has to be. Whatever stands proud of the back face is the back cover riser, rounded up to 0.5. If even zero recess leaves the footplate over 1 mm high, shim it back to design and the riser grows by the shim. The riser counts in the candidacy stack. Over 6 mm gets bulky and needs client approval.</li>
+    <li><span class="tier et">ET</span> T, G and G Long are 6-string only; 7 and 8 strings are F7 and F8. G Standard when the scale line to the bridge pickup bezel is 0.55" (14 mm) or less, G Long above that, trimmed to fit (Bridge Buying Guide; the G Model page says 5/8").</li>
+    <li><span class="tier rg">RG</span> Bridge choice on a 6: F up to a 4.5 mm top riser, G above that. 7 and 8 strings go F7 / F8 with a riser up to 6 mm. T and G take no top riser.</li>
+    <li><span class="tier et">ET</span> Saddle pitch 10.4 mm on average, saddles float a little; E to e works out about 52 / 62.4 / 72.8 for 6 / 7 / 8. <span class="tier rg">RG</span> Old bridge within 2.5 mm total is fine, 2.5 to 4 check the outer strings on the neck, over 4 flagged.</li>
     <li><span class="tier rg">RG</span> Measure string height with one reference string set to a known 12th-fret action, before removing the old bridge. The EverTune saddle at mid-window should reproduce that height.</li>
   </ul>
 </footer>
@@ -194,7 +203,11 @@ const RULES={
   gateStack:53, fThreshold:13,
   win:{F:[8.9,13.5],G:[14.5,19.2]},
   fMinBody:44.45, footFloor:1.27, footTol:1.0, footThk:2.0, // footplate thickness, RG, confirm with calipers
-  topRiserMax:6, topRiserWarn:5, rearRiserMax:6, hMax:19.5,
+  topRiserMax:6, topRiserWarn:5, rearRiserMax:6, hMax:19.5, fMid:11.2,
+  gCross:4.5,                              // RG: 6-string, F + riser up to this riser, G above it
+  gLongAt:14, gFront:13.67, glFront:20.16, // ET: G Std vs Long at 0.55" (Buying Guide; the G page says 5/8", confirm). Frame front ahead of the scale line, ET001 G
+  pitch:10.4,                              // ET: saddle pitch, average, saddles float
+  spOk:2.5, spBad:4.0,                     // RG: E to e difference vs the old bridge, total mm. J270 accepted 2.1. Confirm
   depths:[{k:'TOP 2',d:25.4,top:true,note:'Main pocket, at least 25.4 into the body'},
           {k:'BOT 4',d:6.35,note:'F only'},
           {k:'BOT 3',d:21.6,note:''},
@@ -204,69 +217,89 @@ const RULES={
 const $=id=>document.getElementById(id);
 const num=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:0};
 const r1=x=>Math.round(x*10)/10, r2=x=>Math.round(x*100)/100, half=x=>Math.round(x*2)/2;
-let mode='rec';
-const halfUp=x=>Math.ceil(x*2-1e-9)/2;
-function recommend(H,T){
-  // Rosco recommendation. ET windows, RG choice rules.
-  const fMid=(RULES.win.F[0]+RULES.win.F[1])/2;
-  const rec={model:'F',R:0,B:0,why:'',alt:''};
-  if(H>RULES.hMax){rec.model='none';rec.why=`No EverTune reaches ${r1(H)} mm. F + 6 riser tops out at 19.5, G at 19.2. Lower the action at the bridge first.`;return rec;}
-  if(H<RULES.win.F[0]){rec.why=`${r1(H)} mm is under the F floor of 8.9. F with no riser, but the bridge has to be recessed ${r1(RULES.win.F[0]-H)} mm or the action raised. Not a bolt-on candidate.`;return rec;}
-  const rNeed=Math.min(RULES.topRiserMax,Math.max(0,half(H-fMid)));          // riser that centres the F window on the string
-  const gOK=H>=RULES.win.G[0]&&H<=RULES.win.G[1];
-  if(H<=RULES.win.F[1]){rec.model='F';rec.R=rNeed;rec.why=rNeed?`Inside the F window. A ${r1(rNeed)} mm top riser centres the window on ${r1(H)} so the action can go both ways.`:`Inside the F window with no riser, ${r1(H-RULES.win.F[0])} mm above the floor.`;}
-  else if(rNeed<=4.5||!gOK){rec.model='F';rec.R=rNeed;rec.why=`${r1(H)} mm is above the F ceiling. F with a ${r1(rNeed)} mm top riser centres the window on it. Riser covers old holes, no plugs to finish.`;if(gOK)rec.alt=`Alternative: G model, no riser, sits ${r1(H-RULES.win.G[0])} mm above its floor. Old post holes need plugs and finish.`;}
-  else{rec.model='G';rec.why=`${r1(H)} mm sits in the G window (${r1(H-RULES.win.G[0])} mm above the floor, mid is 16.9). No top riser.`;rec.alt=`Alternative: F with a ${r1(rNeed)} mm top riser (near the 6 mm limit). Hides old holes, but check bridge to pickup clearance.`;}
-  if(rec.model==='F'){
-    const eff=T+rec.R, d=eff-43.18, FT=RULES.footThk, tol=RULES.footTol;
-    let cut=Math.min(FT,d+tol); cut=Math.max(cut,Math.min(FT,d-tol)); cut=Math.max(0,cut);
-    const shim=(-d>tol)?r2(-d):0, prot=r2(FT-cut+shim);
-    const need=prot>0.05?halfUp(prot):0, gate=halfUp(Math.max(0,RULES.gateStack+0.05-T-H));
-    rec.B=Math.max(need,gate);
-    if(rec.B>0) rec.why+=` Back cover riser ${r1(rec.B)} mm${need>0?` (footplate stands ${r2(prot)} proud of the back)`:''}${gate>0?' to clear the 53 stack':''}${shim>0?`, plus a ${r2(shim)} mm footplate shim`:''}.`;
-    else rec.why+=` Footplate recess ${r2(cut)} mm, flush, no back cover riser.`;
-  }
-  return rec;
-}
-function calc(){
-  const H=num('h'), T=num('t'), act=num('act');
-  const rec=recommend(H,T);
-  let model=$('model').value, R, B;
-  if(mode==='rec'){
-    model=rec.model==='none'?(H<13?'F':'G'):rec.model; R=rec.R; B=rec.B;
-    $('model').value='auto'; $('r').value=R; $('b').value=B;
-  }else{
-    if(model==='auto') model=rec.model==='none'?(H<13?'F':'G'):rec.model;
-    R=Math.min(RULES.topRiserMax,Math.max(0,num('r'))); B=Math.max(0,num('b'));
-  }
-  if(model==='G'){R=0;}
-  const eff=T+R;
-  const bot2s=eff-43.18;
+const halfUp=x=>Math.ceil(x*2-1e-9)/2, clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+// Bridges. fam F = F & T templates and depths, fam G = G templates. riser = takes a top riser (RG: T and G normally do not).
+const MODELS={
+  F6:{fam:'F',name:'F',n:6,riser:true},
+  T: {fam:'F',name:'T',n:6,riser:false,tele:true},
+  G: {fam:'G',name:'G',n:6,riser:false},
+  GL:{fam:'G',name:'G Long',n:6,riser:false,long:true},
+  F7:{fam:'F',name:'F7',n:7,riser:true},
+  F8:{fam:'F',name:'F8',n:8,riser:true}};
+const BY_N={6:['F6','T','G','GL'],7:['F7'],8:['F8']};
+let pick=null, rAuto=true, bAuto=true;   // pick = bridge the user chose over the recommendation; null follows it
+const fOf=n=>n===6?'F6':'F'+n;
+const autoTop=(model,H)=>MODELS[model].riser?clamp(half(H-RULES.fMid),0,RULES.topRiserMax):0;  // riser that centres the F window on the string
+const gOf=bz=>bz!=null&&bz>RULES.gLongAt?'GL':'G';
+function backOf(T,R,H){
   // Back of the body. d = design recess depth (BOT 2 small). Cut the footplate's own thickness so it sits flush,
   // unless that puts the footplate more than footTol off design. Whatever stands proud of the back face sets the back cover riser.
-  const d=bot2s, FT=RULES.footThk, tol=RULES.footTol;
-  let cut=Math.min(FT,d+tol); cut=Math.max(cut,Math.min(FT,d-tol)); cut=Math.max(0,cut); cut=r2(cut);
+  const d=T+R-43.18, FT=RULES.footThk, tol=RULES.footTol;
+  let cut=Math.min(FT,d+tol); cut=Math.max(cut,Math.min(FT,d-tol)); cut=r2(Math.max(0,cut));
   const shim=(-d>tol)?r2(-d):0;                 // even at zero cut the footplate is too high: shim back to design
-  const protrusion=r2(FT-cut+shim);
-  const rearNeeded=protrusion>0.05;
-  const rearMin=rearNeeded?halfUp(protrusion):0;
-  const gateMin=Math.max(0,r2(RULES.gateStack+0.05-T-H));
-  const stack=T+B+H;
-  const win=RULES.win[model].map(v=>v+(model==='F'?R:0));
-  const mid=(win[0]+win[1])/2;
+  const prot=r2(FT-cut+shim), need=prot>0.05?halfUp(prot):0, gate=halfUp(Math.max(0,RULES.gateStack+0.05-T-H));
+  return {cut,shim,prot,need,gate,auto:Math.max(need,gate)};
+}
+function recommend(H,n,bz){
+  // Rosco recommendation. ET windows, RG choice rules.
+  const F=fOf(n), Fn=MODELS[F].name, rNeed=autoTop(F,H), gOK=H>=RULES.win.G[0]&&H<=RULES.win.G[1];
+  const rec={model:F,why:'',alt:''};
+  if(H>RULES.hMax){rec.model='none';rec.fallback=n===6?gOf(bz):F;rec.why=`No EverTune reaches ${r1(H)} mm. ${Fn} + 6 riser tops out at 19.5${n===6?', G at 19.2':''}. Lower the action at the bridge first.`;return rec;}
+  if(H<RULES.win.F[0]){rec.why=`${r1(H)} mm is under the ${Fn} floor of 8.9. The bridge has to be recessed ${r1(RULES.win.F[0]-H)} mm or the action raised. Not a bolt-on candidate.`;return rec;}
+  if(H<=RULES.win.F[1]){
+    rec.why=rNeed?`Inside the ${Fn} window. A ${r1(rNeed)} mm top riser centres the window on ${r1(H)} so the action can go both ways.`:`Inside the ${Fn} window with no riser, ${r1(H-RULES.win.F[0])} mm above the floor.`;
+    if(n===6) rec.alt='On a Tele: T is the same routing with the plate over the bridge pickup, no riser.';
+    return rec;}
+  if(n!==6||rNeed<=RULES.gCross||!gOK){
+    rec.why=`${r1(H)} mm is above the ${Fn} ceiling of 13.5. A ${r1(rNeed)} mm top riser centres the window on it and covers the old holes, no plugs to finish.${rNeed>=RULES.topRiserWarn?' Near the 6 mm limit, check bridge to pickup clearance.':''}`;
+    if(n===6&&gOK) rec.alt=`Alternative: G, no riser, ${r1(H-RULES.win.G[0])} mm above its floor. Old post holes need plugs and finish.`;
+    else if(n!==6) rec.alt=`G is 6-string only, so the riser is how a ${Fn} gets there.`;
+    return rec;}
+  rec.model=gOf(bz);
+  rec.why=`${r1(H)} mm sits in the G window, ${r1(H-RULES.win.G[0])} mm above the floor (mid 16.9). No top riser.${bz==null?' Measure scale line to pickup bezel to settle G or G Long.':''}`;
+  rec.alt=`Alternative: F with a ${r1(rNeed)} mm top riser. Covers the old holes, near the 6 mm limit, check pickup clearance.`;
+  return rec;
+}
+const opt=id=>$(id).value===''?null:num(id);
+function calc(){
+  const n=parseInt($('strings').value,10), H=num('h'), T=num('t'), act=num('act'), sp=opt('sp'), bz=opt('bz');
+  if(pick&&!BY_N[n].includes(pick)) pick=null;
+  const rec=recommend(H,n,bz), recModel=rec.model==='none'?rec.fallback:rec.model;
+  const model=pick||recModel, M=MODELS[model], fam=M.fam;
+  const rAutoVal=autoTop(model,H);
+  const R=M.riser?(rAuto?rAutoVal:clamp(num('r'),0,RULES.topRiserMax)):0;
+  const bk=backOf(T,R,H);
+  const B=fam==='F'?(bAuto?bk.auto:Math.max(0,num('b'))):0;
+  if(rAuto||!M.riser) $('r').value=R;
+  if(bAuto||fam!=='F') $('b').value=B;
+  const recR=autoTop(recModel,H), recBk=MODELS[recModel].fam==='F'?backOf(T,recR,H):null, recB=recBk?recBk.auto:0;
+  const eff=T+R, stack=T+B+H;
+  const win=RULES.win[fam].map(v=>v+(fam==='F'?R:0)), mid=(win[0]+win[1])/2;
+  // string spacing vs the EverTune saddle pitch
+  const et=(n-1)*RULES.pitch, spd=sp==null?0:sp-et, spC=sp==null?null:Math.abs(spd)<=RULES.spOk?'ok':Math.abs(spd)<=RULES.spBad?'warn':'bad';
   const errs={};
   if(H>RULES.hMax) errs.h=`Over ${RULES.hMax}. No EverTune reaches that: F + 6 riser tops out at 19.5, G at 19.2. Lower the action or the guitar is not a candidate.`;
   else if(H<RULES.win.F[0]) errs.h=`Under 8.9. Below the F floor, the bridge would have to be recessed.`;
   if(T<30) errs.t='Under 30. Check the measurement.';
-  if(mode==='man'&&num('r')>RULES.topRiserMax) errs.r='Capped at 6. Above that the bridge fouls the bridge pickup. Use a G.';
+  if(M.riser&&!rAuto&&num('r')>RULES.topRiserMax) errs.r=`Capped at 6. Above that the bridge fouls the bridge pickup.${n===6?' Use a G.':''}`;
   if(B>RULES.rearRiserMax) errs.b='Over 6 gets bulky on the back. Client approval.';
-  return {style:$('style').value,H,T,act,model,R,B,eff,bot2s,cut,shim,protrusion,rearNeeded,rearMin,gateMin,stack,win,mid,errs,rec};
+  if(spC==='bad') errs.sp=`${spd>0?'+':''}${r1(spd)} mm vs the ${M.name} (about ${r1(et)}). Outside the ${RULES.spBad} mm range, check where the outer strings land on the neck.`;
+  return {n,H,T,act,sp,bz,model,M,fam,tele:!!M.tele,R,B,eff,rAutoVal,
+    cut:bk.cut,shim:bk.shim,protrusion:bk.prot,rearNeeded:bk.prot>0.05,rearMin:bk.need,gateMin:bk.gate,
+    stack,win,mid,errs,rec,recModel,recR,recB,recBk,et,spd,spC};
 }
 
 function verdicts(s){
   const out=[];
-  const rk=s.rec;
-  out.push({c:'rec',h:mode==='rec'?'Recommendation':'Recommendation (you are in manual mode)',p:(rk.model==='none'?'Not a candidate. ':rk.model==='F'?`<b>F / T model${rk.R?`, ${r1(rk.R)} mm top riser`:''}${rk.B?`, ${r1(rk.B)} mm back cover riser`:''}.</b> `:`<b>G model.</b> `)+rk.why+(rk.alt?`<div class="alt">${rk.alt}</div>`:'')});
+  const rk=s.rec, mine=s.model!==s.recModel, rb=s.recBk;
+  const head=rk.model==='none'?'Not a candidate as measured. ':`<b>${MODELS[s.recModel].name}${s.recR?`, ${r1(s.recR)} mm top riser`:''}${s.recB?`, ${r1(s.recB)} mm back cover riser`:''}.</b> `;
+  const backTxt=!rb||rk.model==='none'?'':s.recB>0?` Back cover riser ${r1(s.recB)} mm${rb.need>0?` (footplate stands ${r2(rb.prot)} proud of the back)`:''}${rb.gate>rb.need?' to clear the 53 stack':''}${rb.shim>0?`, plus a ${r2(rb.shim)} mm footplate shim`:''}.`:` Footplate recess ${r2(rb.cut)} mm, flush, no back cover riser.`;
+  out.push({c:'rec',h:mine?`Recommendation (you picked ${s.M.name})`:'Recommendation',p:head+rk.why+backTxt+(rk.alt?`<div class="alt">${rk.alt}</div>`:'')});
+  if(s.sp!=null){
+    const ps=r1(Math.abs(s.spd)/2), card={c:s.spC,h:'String spacing',p:`Old bridge <span class="num">${r1(s.sp)}</span> E to e, the ${s.M.name} is about <span class="num">${r1(s.et)}</span> (10.4 pitch, floating saddles). Difference <span class="num">${s.spd>0?'+':''}${r1(s.spd)} mm</span>, ${ps} per side, outer strings move ${s.spd>0?'in':'out'}. `+
+      (s.spC==='ok'?'Inside the range.':s.spC==='warn'?'Edge of the range. Check the outer strings against the fretboard edges before committing.':'Outside the range. Check where the outer strings land on the neck before going any further.')};
+    if(s.spC==='bad') out.unshift(card); else out.push(card);
+  }
   const gate=s.stack>RULES.gateStack;
   if(s.errs.h&&s.H>RULES.hMax) out.push({c:'bad',h:'Candidacy',p:`Not a candidate. String height <span class="num">${r1(s.H)} mm</span> is above anything EverTune makes (F + 6 riser 19.5, G 19.2). Lower the action at the bridge or stop here.`});
   else out.push({c:gate?'ok':'bad',h:'Candidacy',p:gate
@@ -275,21 +308,34 @@ function verdicts(s){
   const inWin=s.H>=s.win[0]&&s.H<=s.win[1];
   let wp;
   if(inWin) wp=`Target <span class="num">${r1(s.H)}</span> sits <span class="num">${r1(s.H-s.win[0])} mm</span> above the floor, mid is <span class="num">${r1(s.mid)}</span>.`;
-  else if(s.H<s.win[0]) wp=`Target <span class="num">${r1(s.H)}</span> is <span class="num">${r1(s.win[0]-s.H)} mm</span> below the floor. ${s.model==='F'&&s.R>0?'Reduce the top riser.':s.model==='G'?'G sits too high, this is F territory.':'Recess the bridge or raise the action.'}`;
-  else wp=`Target <span class="num">${r1(s.H)}</span> is <span class="num">${r1(s.H-s.win[1])} mm</span> above the ceiling. ${s.model==='F'?`Needs <span class="num">${r1(s.H-RULES.win.F[1])} mm</span> of top riser, or G.`:'Above anything EverTune built for.'}`;
-  out.push({c:inWin?(Math.abs(s.H-s.mid)<=1?'ok':'warn'):'bad',h:`${s.model==='F'?'F / T':'G'} saddle window`,p:`<span class="num">${r1(s.win[0])} to ${r1(s.win[1])} mm</span> off the body top${s.R?` (8.9 to 13.5 off the riser top)`:''}. ${wp}`});
-  if(s.model==='F'){
-    let c='ok',p=s.R?`<span class="num">${r1(s.R)} mm</span> at the scale line. 3-sided, front open. Added to every backside depth.`:'None. Faceplate on the body top.';
-    if(s.R>RULES.topRiserMax){c='bad';p=`<span class="num">${r1(s.R)} mm</span> is over the 6 mm limit. The bridge fouls the bridge pickup. Go G.`;}
-    else if(s.R>=RULES.topRiserWarn){c='warn';p=`<span class="num">${r1(s.R)} mm</span>, near the 6 mm limit. Check bridge to pickup clearance before routing.`;}
+  else if(s.H<s.win[0]) wp=`Target <span class="num">${r1(s.H)}</span> is <span class="num">${r1(s.win[0]-s.H)} mm</span> below the floor. ${s.M.riser&&s.R>0?'Reduce the top riser.':s.fam==='G'?'G sits too high, this is F territory.':'Recess the bridge or raise the action.'}`;
+  else wp=`Target <span class="num">${r1(s.H)}</span> is <span class="num">${r1(s.H-s.win[1])} mm</span> above the ceiling. ${s.M.riser?`Needs <span class="num">${r1(s.H-RULES.win.F[1])} mm</span> or more of top riser${s.n===6?', or G':''}.`:s.tele?'A T takes no riser. Use the F with a riser, or a G.':'Above anything EverTune built for.'}`;
+  out.push({c:inWin?(Math.abs(s.H-s.mid)<=1?'ok':'warn'):'bad',h:`${s.M.name} saddle window`,p:`<span class="num">${r1(s.win[0])} to ${r1(s.win[1])} mm</span> off the body top${s.R?` (8.9 to 13.5 off the riser top)`:''}. ${wp}`});
+  if(s.M.riser){
+    const man=!rAuto&&r1(s.R)!==r1(s.rAutoVal)?` Your number; auto is <span class="num">${r1(s.rAutoVal)}</span>.`:'';
+    let c='ok',p=(s.R?`<span class="num">${r1(s.R)} mm</span> at the scale line. 3-sided, front open. Added to every backside depth.`:'None. Faceplate on the body top.')+man;
+    if(s.R>RULES.topRiserMax){c='bad';p=`<span class="num">${r1(s.R)} mm</span> is over the 6 mm limit. The bridge fouls the bridge pickup.${s.n===6?' Go G.':''}`;}
+    else if(s.R>=RULES.topRiserWarn){c='warn';p=`<span class="num">${r1(s.R)} mm</span>, near the 6 mm limit. Check bridge to pickup clearance before routing.${man}`;}
     out.push({c,h:'Top riser',p});
+  }else if(s.tele){
+    out.push({c:'ok',h:'Top riser',p:'Not used on a T: the plate wraps the bridge pickup. The bridge pickup flips 180 degrees to clear the modules.'});
   }else{
     out.push({c:'ok',h:'Top riser',p:'Not used on a G. Frame height carries the saddles.'});
   }
+  if(s.fam==='G'){
+    let c='ok',p;
+    const bz=s.bz, front=s.M.long?RULES.glFront:RULES.gFront;
+    if(bz==null){c='warn';p=`Not measured. Scale line to the bridge pickup bezel: up to ${RULES.gLongAt} is G, over is G Long trimmed to fit. EverTune's G page says 5/8" (15.9), the Buying Guide 0.55" (14); confirm.`;}
+    else if(!s.M.long&&bz<RULES.gFront){c='bad';p=`G frame front sits <span class="num">${r1(RULES.gFront)}</span> ahead of the scale line, bezel at <span class="num">${r1(bz)}</span>. Hits it by <span class="num">${r1(RULES.gFront-bz)} mm</span>.`;}
+    else if(!s.M.long&&bz>RULES.gLongAt){c='warn';p=`Bezel at <span class="num">${r1(bz)}</span> leaves a <span class="num">${r1(bz-RULES.gFront)} mm</span> gap in front of the G frame. G Long fills it, trimmed to fit.`;}
+    else if(s.M.long&&bz<=RULES.gLongAt){c='warn';p=`G Long front is <span class="num">${r1(RULES.glFront)}</span> ahead of the scale line, bezel at <span class="num">${r1(bz)}</span>: trim <span class="num">${r1(RULES.glFront-bz)} mm</span>. A standard G fits as is.`;}
+    else p=`Bezel at <span class="num">${r1(bz)}</span>. ${s.M.long?`G Long front at ${r1(front)}, trim ${r1(Math.max(0,front-bz))} mm to fit.`:'Standard G fits, frame front at 13.7.'}`;
+    out.push({c,h:'G or G Long',p});
+  }
   let rc='ok',rp;
-  if(s.model==='G'){rp='G mounts on inserts and a recessed back cover. Not modelled in v0.1.';}
+  if(s.fam==='G'){rp='G mounts on inserts and a recessed back cover. Not modelled yet.';}
   else if(s.rearNeeded){
-    rp=`Footplate recess <span class="num">${r2(s.cut)} mm</span>${s.shim>0?` plus a <span class="num">${r2(s.shim)} mm</span> shim`:''}, footplate stands <span class="num">${r2(s.protrusion)} mm</span> proud of the back face. Back cover riser minimum <span class="num">${r1(s.rearMin)} mm</span> so the backplate clears. Entered <span class="num">${r1(s.B)}</span>.`;
+    rp=`Footplate recess <span class="num">${r2(s.cut)} mm</span>${s.shim>0?` plus a <span class="num">${r2(s.shim)} mm</span> shim`:''}, footplate stands <span class="num">${r2(s.protrusion)} mm</span> proud of the back face. Back cover riser minimum <span class="num">${r1(s.rearMin)} mm</span> so the backplate clears.${bAuto?'':` Yours <span class="num">${r1(s.B)}</span>.`}`;
     if(s.B<s.rearMin){rc='bad';rp+=' Under the minimum.';}
     else if(s.B>RULES.rearRiserMax){rc='warn';rp+=' Over 6 mm, bulky on the back, client approval.';}
   }else{
@@ -302,10 +348,11 @@ function verdicts(s){
 
 function depths(s){
   const was={};document.querySelectorAll('#depths .done').forEach(c=>was[c.id]=c.checked);
-  if(s.model==='G'){$('depths').innerHTML=`<tr><td colspan="5" class="flag">G sequence uses Forstner depths from the top (G2 1-5/8", G3X 1-13/16", G4X 1/2") and a 1/2" bearing bit. Not tabulated here in v0.1.</td></tr>`;return;}
+  if(s.fam==='G'){$('depths').innerHTML=`<tr><td colspan="5" class="flag">G sequence uses Forstner depths from the top (G2 1-5/8", G3X 1-13/16", G4X 1/2") and a 1/2" bearing bit. Not tabulated here in v0.1.</td></tr>`;return;}
   $('depths').innerHTML=RULES.depths.map(d=>{
     if(d.top) return `<tr><td><input type="checkbox" class="done" id="done-${d.k.replace(/\W/g,'')}" aria-label="${d.k} done"></td><td>${d.k}</td><td class="n">≥ ${r2(d.d+s.R)}</td><td class="n">≥ ${r2(d.d+s.R)} from the top</td><td class="flag">${d.note}${s.R?`, through ${r1(s.R)} of riser first`:''}</td></tr>`;
     const rd=s.eff-d.d, fp=d.d===43.18;
+    if(s.tele&&d.k==='BOT 4') return `<tr class="isdone"><td></td><td>${d.k}</td><td class="n">${r2(d.d)}</td><td class="n">skip</td><td class="flag">F only, a T skips it</td></tr>`;
     if(fp){
       const cls=s.shim>0?'shim':'';
       const depth=s.cut>0?`${r2(s.cut)}`:'no cut';
@@ -322,7 +369,7 @@ function depths(s){
 
 function draw(s){
   // Section: x axis is distance AHEAD of the scale line (toward the nut) in mm, drawn right to left. Depths to scale. F pocket lengths from ET001 F7 Body Route Dimensions; G lengths schematic.
-  const callouts=$('callouts').checked, n=parseInt($('strings').value,10);
+  const callouts=$('callouts').checked, n=s.n;
   const S=5, W=callouts?1100:1010, X0=W-410; const mx=u=>X0-u*S;
   const g=[];
   const txt=(x,y,t,o={})=>g.push(`<text x="${x}" y="${y}" font-size="${o.s||11}" fill="${o.c||'var(--mute)'}" text-anchor="${o.a||'start'}" font-weight="${o.w||400}">${t}</text>`);
@@ -333,11 +380,11 @@ function draw(s){
     <pattern id="wood" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="var(--panel)"/><line x1="0" y1="0" x2="0" y2="7" stroke="var(--wood-line)" stroke-width="1"/></pattern>
     <pattern id="riserhatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="5" height="5" fill="var(--riser)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--riser-line)" stroke-width="1"/></pattern>
   </defs>`);
-  const T=s.T, bodyPx=T*S, m=s.model, R=s.R;
+  const T=s.T, bodyPx=T*S, m=s.fam, R=s.R;
   const topM=Math.max(150,s.H*S+70,(m==='G'?24.4:s.R+14.7)*S+55), y0=topM, back=y0+bodyPx, ft=y0-R*S;
   const clampY=y=>Math.min(Math.max(y,y0),back);
   const uL=112, uR=-72; // drawn extent ahead / behind the scale line
-  txt(mx(uL),30,`${m==='F'?(s.style==='T'?'T model':'F model'):'G model'}`,{s:26,w:600,c:'var(--accent)'});txt(mx(uL),50,'section at the centreline, nut to the left',{s:12});
+  txt(mx(uL),30,`${s.M.name} model`,{s:26,w:600,c:'var(--accent)'});txt(mx(uL),50,'section at the centreline, nut to the left',{s:12});
   // body with pockets (evenodd)
   let d=`M${mx(uL)} ${y0} H${mx(uR)} V${back} H${mx(uL)} Z `;
   if(m==='F'){
@@ -353,7 +400,7 @@ function draw(s){
   const hp=(base,cmds)=>cmds.map(c=>{const t=c[0],v=c.slice(1),q=[];for(let i=0;i<v.length;i+=2)q.push(mx(v[i]).toFixed(1)+' '+(base-v[i+1]*S).toFixed(1));return t+q.join(' ');}).join(' ');
   const hw=(base,cmds,f,st,o={})=>g.push(`<path d="${hp(base,cmds)}${o.open?'':' Z'}" fill="${f||'var(--metal)'}" stroke="${st||'var(--metal-line)'}" stroke-width="${o.w||1.2}" ${o.op?`opacity="${o.op}"`:''} stroke-linejoin="round"/>`);
   const hl=(base,cmds,o={})=>hw(base,cmds,'none','var(--metal-line)',{open:1,w:o.w||.8,op:o.op||.7});
-  const tele=m==='F'&&s.style==='T', fFront=tele?70.5:10.3;
+  const tele=s.tele, fFront=tele?70.5:10.3, gF=s.M.long?20.2:13.7;
   if(m==='F'){
     if(R>0){rect(mx(-45),ft,(58.2-45)*S,R*S,'url(#riserhatch)','var(--riser-line)');rect(mx(fFront),ft,(fFront+45)*S,R*S,'none','var(--riser-line)',{d:'3 3'});if(R>=2)txt(mx(fFront)+4,ft+R*S/2+3,'sides only, front open (3-sided)',{s:9,c:'var(--riser-line)'});txt(mx(-59)+5,ft+R*S/2+4,`top riser ${r1(R)}`,{s:10,c:'var(--riser)'});}
     if(tele){
@@ -372,7 +419,7 @@ function draw(s){
     const ku=h=>-51.5-(12.4-h)*.5403, nu=-.88*1.1, nh=.4755*1.1;   // fine tuner knob on the rear slope
     hw(ft,[['M',ku(8.2),8.2],['L',ku(8.2)+nu,8.2+nh],['L',ku(3.2)+nu,3.2+nh],['L',ku(3.2),3.2]]);
   }else{
-    hw(y0,[['M',13.5,0],['L',13.7,4.6],['L',5,8.5],['Q',4.6,8.7,4.5,9.1],['L',4.4,9.6],['L',2.8,9.6],['L',2.7,9.3],['L',-25.4,11.3],['Q',-27,11.5,-27,13],['L',-27,22],['Q',-27,22.9,-28,22.9],['L',-49.4,23.6],['Q',-51.2,23.6,-52,22.6],['C',-56.5,17,-60,9,-60.7,0]]);
+    hw(y0,[['M',gF-.2,0],['L',gF,4.6],['L',5,8.5],['Q',4.6,8.7,4.5,9.1],['L',4.4,9.6],['L',2.8,9.6],['L',2.7,9.3],['L',-25.4,11.3],['Q',-27,11.5,-27,13],['L',-27,22],['Q',-27,22.9,-28,22.9],['L',-49.4,23.6],['Q',-51.2,23.6,-52,22.6],['C',-56.5,17,-60,9,-60.7,0]]);
     hl(y0,[['M',2.7,8.7],['L',-25.6,10.7]]);                     // saddle floor plate
     hl(y0,[['M',-27.6,14.6],['L',-50,16.4]],{op:.5});
     hw(y0,[['M',-29.5,22.95],['L',-29.5,24.4],['L',-33.5,24.4],['L',-33.5,23.1]]);  // threaded stud
@@ -421,6 +468,7 @@ function draw(s){
     }
   }else{
     if(callouts){txt(mx(-42)-4,clampY(y0+46*S)+12,`G2X floor 46${46>T?' (through)':''}`,{s:10,a:'end'});for(const [dd,k] of [[12.7,'G4X 12.7'],[6.35,'step 6.35']]){line(mx(uL)-4,y0+dd*S,mx(uL)-18,y0+dd*S,'var(--metal-line)');txt(mx(uL)-22,y0+dd*S+4,k,{s:10,a:'end'});}}
+    if(s.bz!=null){line(mx(s.bz),y0-30*S,mx(s.bz),y0,'var(--warn)','4 3',1.5);txt(mx(s.bz)-4,y0-30*S+10,'pickup bezel',{s:10,a:'end',c:'var(--warn)'});}
     txt(mx(uL),back+16,'G cutout schematic: G4X 1/2 from top (ET001 G), front step at the F BOT 4 depth. G body 53.2 (thin) to 60.9 (typical).',{s:10});
   }
   // scale line and string
@@ -444,7 +492,8 @@ function draw(s){
     txt(px(-6.4)+6,py(-pw/2)+14,'pocket, through the body',{s:10});txt(px(0)+6,py(-fw/2-16)-6,'#7 holes, front pair on the scale line',{s:10});
     txt(px(fFront)+4,py(-fw/2)+12,tele?'T plate outline':'faceplate outline',{s:10});
   }else{
-    rect(px(13.7),py(-48),56.9*P,96*P,'none','var(--metal-line)',{d:'4 3',rx:8});
+    rect(px(gF),py(-48),(gF+43.2)*P,96*P,'none','var(--metal-line)',{d:'4 3',rx:8});
+    if(s.bz!=null){line(px(s.bz),py(-fw/2-16),px(s.bz),py(fw/2+16),'var(--warn)','4 3',1.5);txt(px(s.bz)-4,py(fw/2+16)-6,'pickup bezel',{s:10,a:'end',c:'var(--warn)'});}
     rect(px(8),py(-pw/2),50*P,pw*P,'var(--panel)','var(--wood-line)',{rx:4});
     for(const v of [-41.3,41.3]) g.push(`<circle cx="${px(-22)}" cy="${py(v)}" r="${4.9*P}" fill="var(--panel)" stroke="var(--wood-line)"/>`);
     txt(px(8)+6,py(-pw/2)+14,'pocket, schematic',{s:10});txt(px(-22)+14,py(-41.3)+4,'inserts',{s:10});
@@ -456,23 +505,40 @@ function draw(s){
   $('svg').innerHTML=g.join('');
 }
 
-function setMode(m){mode=m;$('modeRec').setAttribute('aria-pressed',String(m==='rec'));$('modeMan').setAttribute('aria-pressed',String(m==='man'));
-  for(const id of ['model','r','b'])$(id).disabled=(m==='rec');
-  $('step2').classList.toggle('locked',m==='rec');$('step3').classList.toggle('locked',m==='rec');
-  $('sub2').textContent=m==='rec'?'Recommend mode picks this for you. Switch to Manual to try the other bridge.':'Manual. Pick a bridge and see what it does to the drawing and the depths.';
-  $('sub3').textContent=m==='rec'?'Recommend mode sizes these. Switch to Manual to experiment.':'Manual. Top riser max 6. Rear riser over 6 needs client approval.';
-  run();}
-$('modeRec').addEventListener('click',()=>setMode('rec'));$('modeMan').addEventListener('click',()=>setMode('man'));
 function run(){const s=calc();
-  for(const k of ['h','t','r','b']){const e=$(k+'Err');e.textContent=s.errs[k]||'';e.classList.toggle('on',!!s.errs[k]);$(k).classList.toggle('bad',!!s.errs[k]);}
-  $('modelNote').innerHTML=(mode==='rec'?'<span class="recbadge">recommended</span> ':'')+(s.model==='F'
-    ?`<b>F / T selected.</b> ${s.H>RULES.win.F[1]?`String height ${r1(s.H)} is above the F ceiling of 13.5; needs ${r1(s.H-RULES.win.F[1])} mm or more of top riser.`:`String height ${r1(s.H)} is inside the F window.`}`
-    :`<b>G selected.</b> ${s.H<RULES.win.G[0]?`String height ${r1(s.H)} is below the G floor of 14.5; an F with a riser fits better.`:s.H>RULES.win.G[1]?`String height ${r1(s.H)} is above the G ceiling of 19.2. Not a candidate at this action.`:`String height ${r1(s.H)} is inside the G window. No top riser on a G.`}`);
-  $('styleWrap').style.display=s.model==='F'?'':'none';
+  for(const k of ['h','t','r','b','sp']){const e=$(k+'Err');e.textContent=s.errs[k]||'';e.classList.toggle('on',!!s.errs[k]);$(k).classList.toggle('bad',!!s.errs[k]);}
+  // bridge list: only what exists for this string count, recommended one marked
+  const sel=$('model'), list=BY_N[s.n];
+  sel.innerHTML=list.map(k=>`<option value="${k}">${MODELS[k].name}${k===s.recModel?' (recommended)':''}</option>`).join('');
+  sel.value=s.model; sel.disabled=list.length<2;
+  const winTxt=s.M.riser?(s.H>RULES.win.F[1]?`String height ${r1(s.H)} is above the ${s.M.name} ceiling of 13.5, the top riser makes up the difference.`:`String height ${r1(s.H)} is inside the ${s.M.name} window.`)
+    :s.tele?(s.H>RULES.win.F[1]?`String height ${r1(s.H)} is above the T ceiling of 13.5 and a T takes no riser.`:`String height ${r1(s.H)} is inside the T window.`)
+    :s.H<RULES.win.G[0]?`String height ${r1(s.H)} is below the G floor of 14.5; an F fits better.`:s.H>RULES.win.G[1]?`String height ${r1(s.H)} is above the G ceiling of 19.2.`:`String height ${r1(s.H)} is inside the G window.`;
+  $('modelNote').innerHTML=(s.model===s.recModel?'<span class="recbadge">recommended</span> '
+    :`<span class="recbadge pick">your pick</span> Recommended is ${MODELS[s.recModel].name}. <button type="button" class="link" id="backRec">Back to it</button><br>`)+winTxt+(s.n!==6?` G and T are 6-string only.`:'');
+  $('bzWrap').style.display=s.n===6&&(s.fam==='G'||MODELS[s.recModel].fam==='G'||s.H>RULES.win.F[1])?'':'none';
+  // risers: auto buttons, locked where the bridge takes none
+  $('r').disabled=$('rAuto').disabled=!s.M.riser; $('rAuto').setAttribute('aria-pressed',String(rAuto||!s.M.riser));
+  $('b').disabled=$('bAuto').disabled=s.fam!=='F'; $('bAuto').setAttribute('aria-pressed',String(bAuto||s.fam!=='F'));
+  $('rHint').textContent=s.M.riser?'Only material proud of the body top. Max 6. A flush fill of an old recess is 0.':s.tele?'Not used on a T, the plate wraps the bridge pickup.':'Not used on a G for now.';
+  $('bHint').textContent=s.fam==='F'?'Equal to how far the footplate stands proud of the back face. Goes around the footplate. Over 6 needs client approval.':'G uses a recessed back cover. Not modelled yet.';
+  // spacing hint, flagged as soon as it is typed
+  const sh=$('spHint');
+  if(s.sp==null){sh.className='hint';sh.textContent=`Centre of the low E to centre of the high e on the old bridge. The ${s.M.name} is about ${r1(s.et)}.`;}
+  else{sh.className='hint '+s.spC;sh.textContent=s.spC==='bad'?'':`${s.spd>0?'+':''}${r1(s.spd)} mm vs the ${s.M.name} (about ${r1(s.et)}), ${r1(Math.abs(s.spd)/2)} per side. ${s.spC==='ok'?'Inside the range.':'Edge of the range, check the outer strings on the neck.'}`;}
   verdicts(s);depths(s);draw(s);}
-['h','act','t','r','b','model','strings','style'].forEach(id=>$(id).addEventListener('input',run));
+const reset=()=>{pick=null;rAuto=bAuto=true;run();};
+$('strings').addEventListener('change',()=>{pick=null;rAuto=bAuto=true;run();});
+$('model').addEventListener('change',()=>{const v=$('model').value, rm=calc().recModel; pick=v===rm?null:v; rAuto=bAuto=true; run();});
+$('r').addEventListener('input',()=>{rAuto=false;run();});
+$('b').addEventListener('input',()=>{bAuto=false;run();});
+$('rAuto').addEventListener('click',()=>{rAuto=true;run();});
+$('bAuto').addEventListener('click',()=>{bAuto=true;run();});
+$('reset').addEventListener('click',reset);
+$('modelNote').addEventListener('click',e=>{if(e.target.id==='backRec')reset();});
+['h','act','t','sp','bz'].forEach(id=>$(id).addEventListener('input',run));
 $('callouts').addEventListener('change',run);
-setMode('rec');
+run();
 })();
 </script>
 </body>
