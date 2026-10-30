@@ -42,14 +42,22 @@ h2{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
 .grid{display:grid;gap:12px 16px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 label{display:grid;gap:4px;font-size:13px;color:var(--mute);min-width:0}
 label b{color:var(--ink);font-weight:500}
-input[type=number],select{font:500 16px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:100%;font-variant-numeric:tabular-nums}
+input[type=number],input[type=text],select{font:500 16px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:100%;font-variant-numeric:tabular-nums}
 input:focus,select:focus,button:focus{outline:2px solid var(--accent);outline-offset:1px}
 .row{display:flex;gap:6px;align-items:center}
 .row input{flex:1;min-width:0}
 button.auto{font:500 12px var(--sans);padding:8px 10px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:4px;cursor:pointer;white-space:nowrap}
 button.auto[aria-pressed="true"]{background:var(--accent);color:var(--panel)}
 .hint{font-size:12px;color:var(--mute);line-height:1.35}
-.steps{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.steps{display:grid;gap:14px;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+@media (max-width:760px){.steps{grid-template-columns:minmax(0,1fr)}}
+.fields .req b::after{content:none}
+.step.s1{grid-column:1/-1}
+.fields{display:grid;gap:10px 14px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));align-items:start}
+.step h2{flex-wrap:wrap}
+.step h2 .sub{margin:0;font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
+.bcols{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) minmax(120px,170px);align-items:start}
+.bsel{display:grid;gap:12px;align-content:start}
 .step{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:14px;display:grid;gap:12px;align-content:start}
 .step h2{display:flex;align-items:center;gap:10px;margin:0;color:var(--ink)}
 .step h2 i{font-style:normal;font-family:var(--mono);background:var(--accent);color:var(--accent-ink);border-radius:999px;width:24px;height:24px;display:inline-grid;place-items:center;font-size:13px}
@@ -69,6 +77,23 @@ h1 span{color:var(--accent)}
 .recbadge.pick{color:var(--warn);border-color:var(--warn)}
 button.link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit}
 button.auto:disabled,input:disabled,select:disabled{opacity:.45;cursor:not-allowed}
+.hbtns{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+button.auto.solid{background:var(--accent);color:var(--accent-ink)}
+input[type=text]{font-family:var(--sans)}
+.job .grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.bridgepic{margin:0;display:grid;gap:6px}
+.bridgepic img{width:100%;height:auto;border-radius:6px;background:#e7e7e7;border:1px solid var(--line)}
+.bridgepic figcaption{font-size:12px;display:grid;gap:2px;color:var(--mute)}
+.bridgepic figcaption b{font-size:14px;color:var(--ink)}
+table.seq td:nth-child(2){font-family:var(--mono);color:var(--mute)}
+tr.skip td{opacity:.45}
+#sheet{display:none}
+details.fold>summary{cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary h2{margin:0}
+details.fold>summary h2::before{content:"+ ";font-family:var(--mono);color:var(--accent)}
+details.fold[open]>summary h2::before{content:"\2212  "}
+details.fold[open]>summary{margin-bottom:10px}
 .hint.bad{color:var(--bad)} .hint.warn{color:var(--warn)} .hint.ok{color:var(--ok)}
 .v.rec{border-color:var(--accent);background:var(--accent-soft);grid-column:1/-1}
 .v.rec p{font-size:15px}
@@ -93,8 +118,37 @@ tr.shim td{color:var(--warn)}
 tr.isdone td{opacity:.5;text-decoration:line-through}
 tr.isdone td:first-child{opacity:1;text-decoration:none}
 input.done{width:18px;height:18px;accent-color:var(--accent)}
-@media print{:root{--bg:#fff;--panel:#fff;--panel2:#fff;--ink:#111;--mute:#444;--line:#999;--wood:#eee;--wood-line:#555;--metal:#ccc;--metal-line:#333;--accent:#0b7a70;--accent-ink:#fff;--accent-soft:#eef;--ok-soft:#f3f3f3;--warn-soft:#f3f3f3;--bad-soft:#f3f3f3;color-scheme:light}
-  body{padding:0;font-size:12px}.seg,.hint,.legend,footer,#callouts,h2 label,button.auto,button.link{display:none!important}.panel,.step{border-color:#999;break-inside:avoid}.steps{grid-template-columns:repeat(3,1fr)}input,select{border:1px solid #999}.wrap{gap:10px}}
+@media print{
+  @page{size:letter;margin:12mm}
+  :root{--bg:#fff;--panel:#fff;--panel2:#fff;--ink:#111;--mute:#444;--line:#999;--wood:#eee;--wood-line:#555;--metal:#ccc;--metal-line:#333;--accent:#0b7a70;--accent-ink:#fff;--accent-soft:#eef;--ok:#0b7a70;--ok-soft:#f3f3f3;--warn:#8a5a00;--warn-soft:#f3f3f3;--bad:#b3261e;--bad-soft:#f3f3f3;--riser:#7fd9cf;--riser-line:#0b7a70;color-scheme:light}
+  body{padding:0;font-size:11px;background:#fff}
+  .wrap{display:none!important}
+  #sheet{display:block}}
+.sh{color:#111;font-family:var(--sans)}
+.sh .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #111;padding-bottom:8px}
+.sh .brand{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#444}
+.sh h1{font-size:20px;margin:2px 0}
+.sh .top img{width:34mm;height:auto;border-radius:3px}
+.sh h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:12px 0 4px;border-bottom:1px solid #999;padding-bottom:2px}
+.sh table{width:100%;border-collapse:collapse}
+.sh td,.sh th{font-size:11px;padding:3px 6px;border-bottom:1px solid #ccc;text-align:left;vertical-align:top}
+.sh th{font-size:9px;color:#444}
+.sh td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+.sh .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 16px;font-size:11px}
+.sh .kv div{border-bottom:1px solid #ddd;padding:2px 0}
+.sh .kv span{color:#444;display:block;font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.sh .big{font-family:var(--mono);font-size:14px;font-weight:600}
+.sh .box{display:inline-block;width:12px;height:12px;border:1.5px solid #111;border-radius:2px;vertical-align:-2px}
+.sh .box.on{background:#111}
+.sh tr.skip td{color:#888;text-decoration:line-through}
+.sh ul{margin:0;padding-left:16px}.sh li{margin:2px 0}
+.sh .flag-bad{color:#b3261e}.sh .flag-warn{color:#8a5a00}
+.sh .pg2{break-inside:avoid}
+.sh table.sq{table-layout:fixed}.sh table.sq td{padding:2px 5px;font-size:10px}
+.sh table.sq col.c0{width:5%}.sh table.sq col.c1{width:4%}.sh table.sq col.c2{width:41%}.sh table.sq col.c3{width:13%}.sh table.sq col.c4{width:12%}.sh table.sq col.c5{width:25%}
+.sh .sq tr{break-inside:avoid}
+.sh svg{max-height:150mm}
+.sh .lines div{border-bottom:1px solid #999;height:9mm}
 .tier{font-family:var(--mono);font-size:11px;padding:1px 5px;border-radius:3px;border:1px solid var(--line);color:var(--mute);vertical-align:middle}
 .tier.et{border-color:var(--ok);color:var(--ok)}
 .tier.rg{border-color:var(--accent);color:var(--accent)}
@@ -111,46 +165,64 @@ footer ul{margin:6px 0 0;padding-left:18px}
 <div class="wrap">
 <header>
   <h1><span>Rosco</span> EverTune Routing Tool</h1>
-  <span class="eyebrow">Rosco Guitars · v0.1.1 · mm</span>
-  <button type="button" class="auto" id="reset" style="margin-left:auto">Reset to recommended</button>
+  <span class="eyebrow">Rosco Guitars · v0.2 · mm</span>
+  <span class="hbtns"><button type="button" class="auto" id="reset">Reset to recommended</button><button type="button" class="auto solid" id="print">Print bench sheet</button></span>
 </header>
 
+<section class="panel job">
+  <h2>Job <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">optional, prints on the bench sheet</span></h2>
+  <div class="grid">
+    <label><b>Job #</b><input type="text" id="job" placeholder="J273" autocomplete="off"></label>
+    <label><b>Client</b><input type="text" id="client" autocomplete="off"></label>
+    <label><b>Guitar</b><input type="text" id="guitar" placeholder="make, model, colour" autocomplete="off"></label>
+    <label><b>Old bridge</b><input type="text" id="oldb" placeholder="e.g. Hipshot Ibby HM 7, recessed" autocomplete="off"></label>
+  </div>
+</section>
+
 <section class="steps">
-  <div class="step">
-    <h2><i>1</i> Measure the guitar</h2>
-    <p class="sub">Before the old bridge comes off. Original body top is the datum.</p>
+  <div class="step s1">
+    <h2><i>1</i> Measure the guitar <span class="sub">Before the old bridge comes off. Original body top is the datum.</span></h2>
+    <div class="fields">
     <label><b>Strings</b>
       <select id="strings"><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option></select>
-      <span class="hint">Sets the bridge list. T, G and G Long are 6-string only.</span></label>
+      <span class="hint">T and G are 6-string only.</span></label>
     <label class="req"><b>String height at bridge</b>
       <div class="row"><input type="number" id="h" step="0.1" min="5" max="19.5" value="11" required><span class="unit">mm</span></div>
       <span class="err" id="hErr"></span>
-      <span class="hint">Set one reference string to the action below, then measure body top to string underside at the scale line.</span></label>
+      <span class="hint">Body top to string underside at the scale line, at the action set here.</span></label>
     <label class="req"><b>Body thickness at the bridge</b>
       <div class="row"><input type="number" id="t" step="0.1" min="30" max="70" value="42" required><span class="unit">mm</span></div>
       <span class="err" id="tErr"></span></label>
-    <label><b>Reference action at the 12th fret</b>
+    <label><b>Action at the 12th fret</b>
       <div class="row"><input type="number" id="act" step="0.1" min="0.5" max="4" value="1.6"><span class="unit">mm</span></div>
-      <span class="hint">1/16" is 1.6. Recorded so the measurement is repeatable.</span></label>
-    <label><b>String spacing, E to e at the bridge</b>
+      <span class="hint">1/16" is 1.6.</span></label>
+    <label><b>String spacing, E to e</b>
       <div class="row"><input type="number" id="sp" step="0.1" min="30" max="100" placeholder="optional"><span class="unit">mm</span></div>
       <span class="err" id="spErr"></span>
-      <span class="hint" id="spHint">Centre of the low E to centre of the high e on the old bridge.</span></label>
+      <span class="hint" id="spHint"></span></label>
+    </div>
   </div>
   <div class="step" id="step2">
-    <h2><i>2</i> Bridge</h2>
-    <p class="sub">Recommended from your numbers. Pick another and the risers resize to suit it.</p>
-    <label><b>Bridge</b>
-      <select id="model"></select></label>
-    <div class="hint" id="modelNote"></div>
-    <label id="bzWrap"><b>Scale line to bridge pickup bezel</b>
-      <div class="row"><input type="number" id="bz" step="0.1" min="0" max="80" placeholder="optional"><span class="unit">mm</span></div>
-      <span class="hint">Settles G or G Long. Up to 14 is G, over 14 is G Long trimmed to fit.</span></label>
+    <h2><i>2</i> Bridge <span class="sub">Pick another and the risers resize.</span></h2>
+    <div class="bcols">
+      <div class="bsel">
+        <label><b>Bridge</b>
+          <select id="model"></select></label>
+        <div class="hint" id="modelNote"></div>
+        <label id="bzWrap"><b>Scale length to pickup bezel</b>
+          <div class="row"><input type="number" id="bz" step="0.1" min="0" max="80" placeholder="measure"><span class="unit">mm</span></div>
+          <span class="hint">To the back edge of the bezel. 14 or less is G, over 14 is G Long.</span></label>
+        <label><b>Finish</b>
+          <select id="finish"><option value="black" selected>Black</option><option value="antique_black">Antique Black</option><option value="black_nickel">Black Nickel</option><option value="brushed_nickel">Brushed Nickel</option><option value="chrome">Chrome</option><option value="gold">Gold</option><option value="nickel">Nickel</option></select></label>
+        <label id="handWrap"><b>Handed</b>
+          <select id="hand"><option value="right" selected>Right-handed</option><option value="left">Left-handed</option></select></label>
+      </div>
+      <figure class="bridgepic"><img id="bimg" alt="" width="1200" height="1200" decoding="async"><figcaption id="bcap"></figcaption></figure>
+    </div>
   </div>
   <div class="step" id="step3">
-    <h2><i>3</i> Risers</h2>
-    <p class="sub">Sized for the bridge automatically. Type a number to try your own, auto puts it back.</p>
-    <label><b>Top riser, height at the scale line</b>
+    <h2><i>3</i> Risers <span class="sub">Sized automatically. Type to override, auto puts it back.</span></h2>
+    <label><b>Top riser, at the scale line</b>
       <div class="row"><input type="number" id="r" step="0.5" min="0" max="6" value="0"><span class="unit">mm</span><button type="button" class="auto" id="rAuto" aria-pressed="true">auto</button></div>
       <span class="err" id="rErr"></span>
       <span class="hint" id="rHint"></span></label>
@@ -162,7 +234,7 @@ footer ul{margin:6px 0 0;padding-left:18px}
 </section>
 
 <section class="panel">
-  <h2 style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Section at the centreline and top view, selected model</span><label style="display:inline-flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-weight:500"><input type="checkbox" id="callouts"> depth callouts</label></h2>
+  <h2 style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Section at the centreline</span><label style="display:inline-flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-weight:500"><input type="checkbox" id="callouts"> depth callouts</label></h2>
   <div class="drawing"><svg id="svg" viewBox="0 0 1000 560" role="img" aria-label="Side view of the body with F and G saddle windows"></svg></div>
   <div class="legend"><span class="lw">Body section</span><span class="lr">Riser (Rosco part)</span><span class="lm">EverTune hardware</span><span class="lo">Saddle window, E strings</span><span class="lt">Target string height</span></div>
 </section>
@@ -172,30 +244,33 @@ footer ul{margin:6px 0 0;padding-left:18px}
   <div class="verdicts" id="verdicts"></div>
 </section>
 
-<section class="panel">
-  <h2>Router depths, F / T sequence</h2>
-  <div style="overflow-x:auto"><table>
-    <thead><tr><th>Done</th><th>Step</th><th class="n">Spec from top</th><th class="n">Router depth</th><th>Note</th></tr></thead>
+<details class="panel fold">
+  <summary><h2 id="seqTitle">Install sequence</h2><span class="hint">router settings and checklist, also on the bench sheet</span></summary>
+  <div style="overflow-x:auto"><table class="seq">
+    <thead><tr><th>Done</th><th>#</th><th>Template / step</th><th class="n">From top</th><th class="n">Router setting</th><th>Note</th></tr></thead>
     <tbody id="depths"></tbody>
   </table></div>
-  <p class="hint" style="margin:10px 0 0">Depths are from the top of the effective body (body + top riser). Backside cuts are measured from the original back face; the rear riser goes on after and never changes a router setting. <span class="tier et">ET</span> F&amp;T Template Instructions, <span class="tier rg">RG</span> riser correction.</p>
-</section>
+  <p class="hint" style="margin:10px 0 0" id="seqFoot"></p>
+</details>
 
-<footer class="panel">
-  <strong>Where the numbers come from.</strong> <span class="tier et">ET</span> published by EverTune, <span class="tier rg">RG</span> Rosco bench rule, not manufacturer guidance.
+<details class="panel fold">
+  <summary><h2>Where the numbers come from</h2></summary>
+  <footer> <span class="tier et">ET</span> published by EverTune, <span class="tier rg">RG</span> Rosco bench rule, not manufacturer guidance.
   <ul>
     <li><span class="tier et">ET</span> Body + string height must exceed 53 mm (2.1"). Under 13 mm string height is F/T, over is G. Bridge Buying Guide.</li>
     <li><span class="tier et">ET</span> Saddle height windows from the body top, E strings: F/T 8.9 to 13.5 mm, G 14.5 to 19.2 mm. ET001 F&amp;T and G Overall Dimensions, 2017e01. Other strings can go higher on the 400 mm radius.</li>
     <li><span class="tier et">ET</span> F/T minimum body 44.45 mm (1 3/4"); under that the footplate mounts on a custom back plate riser. F and F7 Model pages.</li>
     <li><span class="tier rg">RG</span> Top riser shifts the whole F window up by its height, and adds to every backside depth. Max 6 mm measured at the scale line; above that the bridge fouls the bridge pickup, and F + 6 is the G window anyway. 3-sided, front open (Zendesk 22417).</li>
     <li><span class="tier rg">RG</span> Back of the body: route the footplate's own thickness (2 mm assumed, confirm) so it sits flush. The footplate may sit up to 1 mm off its design position, so the recess is pulled back toward design only when it has to be. Whatever stands proud of the back face is the back cover riser, rounded up to 0.5. If even zero recess leaves the footplate over 1 mm high, shim it back to design and the riser grows by the shim. The riser counts in the candidacy stack. Over 6 mm gets bulky and needs client approval.</li>
-    <li><span class="tier et">ET</span> T, G and G Long are 6-string only; 7 and 8 strings are F7 and F8. G Standard when the scale line to the bridge pickup bezel is 0.55" (14 mm) or less, G Long above that, trimmed to fit (Bridge Buying Guide; the G Model page says 5/8").</li>
+    <li><span class="tier et">ET</span> T, G and G Long are 6-string only; 7 and 8 strings are F7 and F8. G standard is made to come right to the bridge pickup bezel of a standard Les Paul: full scale length point to the back edge of the bezel 0.55" (14 mm) or less is G standard, longer is G Long, whose plate stretches to the pickup so there is no gap. EverTune, G model long versus G model standard.</li>
     <li><span class="tier rg">RG</span> Bridge choice on a 6: F up to a 4.5 mm top riser, G above that. 7 and 8 strings go F7 / F8 with a riser up to 6 mm. T and G take no top riser.</li>
-    <li><span class="tier et">ET</span> Saddle pitch 10.4 mm on average, saddles float a little; E to e works out about 52 / 62.4 / 72.8 for 6 / 7 / 8. <span class="tier rg">RG</span> Old bridge within 2.5 mm total is fine, 2.5 to 4 check the outer strings on the neck, over 4 flagged.</li>
+    <li><span class="tier et">ET</span> Saddle pitch 10.4 mm on average, saddles float a little; E to e works out about 52 / 62.4 / 72.8 for 6 / 7 / 8. <span class="tier rg">RG</span> Old bridge narrower than the EverTune (outer strings move out toward the fretboard edges): 2.5 mm total is fine, 2.5 to 4 check the edges, over 4 flagged. Old bridge wider (strings move in, e.g. a vintage Strat at 56.4): 4.5 is fine, 4.5 to 6 check pole alignment, over 6 flagged.</li>
     <li><span class="tier rg">RG</span> Measure string height with one reference string set to a known 12th-fret action, before removing the old bridge. The EverTune saddle at mid-window should reproduce that height.</li>
   </ul>
 </footer>
+</details>
 </div>
+<section id="sheet" aria-hidden="true"></section>
 
 <script>
 (function(){
@@ -205,9 +280,10 @@ const RULES={
   fMinBody:44.45, footFloor:1.27, footTol:1.0, footThk:2.0, // footplate thickness, RG, confirm with calipers
   topRiserMax:6, topRiserWarn:5, rearRiserMax:6, hMax:19.5, fMid:11.2,
   gCross:4.5,                              // RG: 6-string, F + riser up to this riser, G above it
-  gLongAt:14, gFront:13.67, glFront:20.16, // ET: G Std vs Long at 0.55" (Buying Guide; the G page says 5/8", confirm). Frame front ahead of the scale line, ET001 G
+  gLongAt:14, gFront:13.67, glFront:20.16, // ET: full scale length point to the back edge of the bridge pickup bezel, 0.55" (14) or less = G standard (EverTune G long vs standard). Frame fronts ahead of the scale line, ET001 G
   pitch:10.4,                              // ET: saddle pitch, average, saddles float
-  spOk:2.5, spBad:4.0,                     // RG: E to e difference vs the old bridge, total mm. J270 accepted 2.1. Confirm
+  spOut:[2.5,4.0],                         // RG: old bridge narrower, outer strings move OUT toward the fretboard edges. Total mm, ok / flag. Clayton OK 2026-10-30
+  spIn:[4.5,6.0],                          // RG: old bridge wider, strings move IN (vintage Strat 56.4 lands at +4.4). Pole alignment, not edge risk
   depths:[{k:'TOP 2',d:25.4,top:true,note:'Main pocket, at least 25.4 into the body'},
           {k:'BOT 4',d:6.35,note:'F only'},
           {k:'BOT 3',d:21.6,note:''},
@@ -227,6 +303,12 @@ const MODELS={
   F7:{fam:'F',name:'F7',n:7,riser:true},
   F8:{fam:'F',name:'F8',n:8,riser:true}};
 const BY_N={6:['F6','T','G','GL'],7:['F7'],8:['F8']};
+const FINISH={black:'Black',antique_black:'Antique Black',black_nickel:'Black Nickel',brushed_nickel:'Brushed Nickel',chrome:'Chrome',gold:'Gold',nickel:'Nickel'};
+// EverTune product photos, hosted in the Rosco GHL media library (Evertune Bridges - GHL Media URLs.xlsx)
+const IMG={"F7_antique_black":"68a9495ea3d4d37e80f5e984","F7_black":"68a9495ebc73b0fe066b3e9d","F7_black_nickel":"68a9495ef2837ebaa0f93818","F7_brushed_nickel":"68a9495ed603ea1fce288502","F7_chrome":"68a9495ebc73b029996b3e93","F7_gold":"68a9495ef2837e8f1ff9381e","F7_nickel":"68a9495e5f2e6e5015acb5ef","F8_antique_black":"68a9495ed603eac96b28850a","F8_black":"68a9495ed603ea28de288506","F8_black_nickel":"68a9495ed603ea1676288501","F8_brushed_nickel":"68a9495ebc73b007406b3e9b","F8_chrome":"68a9495ef2837e2f54f93819","F8_gold":"68a9495ebc73b0288a6b3e95","F8_nickel":"68a9495ed603ea4f8f288508","F_antique_black":"68a9495ed603eafdc8288500","F_black":"68a9495ebc73b04fe76b3e92","F_black_nickel":"68a9495ea3d4d3ebbaf5e983","F_brushed_nickel":"68a9495ed603ea916a2884ff","F_chrome":"68a9495ef2837e00a3f9381a","F_gold":"68a9495ea3d4d37d1df5e986","F_nickel":"68a9495ea3d4d3e347f5e985","G_long_antique_black":"68a9495ed603ea2dbb288507","G_long_black":"68a9495e5f2e6efb03acb5ee","G_long_black_nickel":"68a9495ef2837e6137f93826","G_long_brushed_nickel":"68a9495e5f2e6e40a5acb5f9","G_long_chrome":"68a9495ef2837e42e4f93825","G_long_gold":"68a9495e5f2e6e563eacb5f8","G_long_nickel":"68a9495ed603ea05cc28850c","G_short_antique_black":"68a9495ebc73b08cb36b3e99","G_short_black":"68a9495ef2837e3eaaf9382a","G_short_black_nickel":"68a9495ebc73b050e86b3e96","G_short_brushed_nickel":"68a9495ef2837e61c7f93829","G_short_chrome":"68a9495ebc73b02fdb6b3e97","G_short_gold":"68a9495ef2837ed686f9382e","G_short_nickel":"68a9495ed603eaf1b6288511","T_left_antique_black":"68a9495ebc73b0f3d06b3e9e","T_left_black":"68a9495ea3d4d37e96f5e98b","T_left_black_nickel":"68a9495ef2837ef007f93828","T_left_brushed_nickel":"68a9495ebc73b0e2c26b3e94","T_left_chrome":"68a9495ed603eaf4d0288509","T_left_gold":"68a9495ef2837effa6f93827","T_left_nickel":"68a9495ed603eaf59a28850b","T_right_antique_black":"68a9495ebc73b0dbe66b3e9c","T_right_black":"68a9495ebc73b0b7026b3e9a","T_right_black_nickel":"68a9495e5f2e6ec6a8acb5fa","T_right_brushed_nickel":"68a9495ea3d4d3b2eaf5e98a","T_right_chrome":"68a9495e5f2e6e8285acb5f7","T_right_gold":"68a9495ebc73b0c40b6b3e98","T_right_nickel":"68a9495ed603eaed5d28850d"};
+const imgStem=s=>({F6:'F',F7:'F7',F8:'F8',G:'G_short',GL:'G_long',T:'T_'+s.hand})[s.model];
+const imgUrl=s=>{const id=IMG[imgStem(s)+'_'+s.finish];return id?`https://storage.googleapis.com/msgsndr/exS4vTEYy4fF3zQeXfKq/media/${id}.png`:'';};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 let pick=null, rAuto=true, bAuto=true;   // pick = bridge the user chose over the recommendation; null follows it
 const fOf=n=>n===6?'F6':'F'+n;
 const autoTop=(model,H)=>MODELS[model].riser?clamp(half(H-RULES.fMid),0,RULES.topRiserMax):0;  // riser that centres the F window on the string
@@ -276,15 +358,16 @@ function calc(){
   const eff=T+R, stack=T+B+H;
   const win=RULES.win[fam].map(v=>v+(fam==='F'?R:0)), mid=(win[0]+win[1])/2;
   // string spacing vs the EverTune saddle pitch
-  const et=(n-1)*RULES.pitch, spd=sp==null?0:sp-et, spC=sp==null?null:Math.abs(spd)<=RULES.spOk?'ok':Math.abs(spd)<=RULES.spBad?'warn':'bad';
+  // spd > 0: old bridge wider, strings move in. spd < 0: old bridge narrower, strings move out toward the edges.
+  const et=(n-1)*RULES.pitch, spd=sp==null?0:sp-et, spL=spd>0?RULES.spIn:RULES.spOut, spC=sp==null?null:Math.abs(spd)<=spL[0]?'ok':Math.abs(spd)<=spL[1]?'warn':'bad';
   const errs={};
   if(H>RULES.hMax) errs.h=`Over ${RULES.hMax}. No EverTune reaches that: F + 6 riser tops out at 19.5, G at 19.2. Lower the action or the guitar is not a candidate.`;
   else if(H<RULES.win.F[0]) errs.h=`Under 8.9. Below the F floor, the bridge would have to be recessed.`;
   if(T<30) errs.t='Under 30. Check the measurement.';
   if(M.riser&&!rAuto&&num('r')>RULES.topRiserMax) errs.r=`Capped at 6. Above that the bridge fouls the bridge pickup.${n===6?' Use a G.':''}`;
   if(B>RULES.rearRiserMax) errs.b='Over 6 gets bulky on the back. Client approval.';
-  if(spC==='bad') errs.sp=`${spd>0?'+':''}${r1(spd)} mm vs the ${M.name} (about ${r1(et)}). Outside the ${RULES.spBad} mm range, check where the outer strings land on the neck.`;
-  return {n,H,T,act,sp,bz,model,M,fam,tele:!!M.tele,R,B,eff,rAutoVal,
+  if(spC==='bad') errs.sp=`${spd>0?'+':''}${r1(spd)} mm vs the ${M.name} (about ${r1(et)}). Outer strings move ${spd>0?'in':'out'} ${r1(Math.abs(spd)/2)} per side, past the ${spL[1]} mm limit. ${spd>0?'Check pole alignment and feel.':'Check where the outer strings land on the fretboard edges.'}`;
+  return {n,H,T,act,sp,bz,spL,finish:$('finish').value,hand:$('hand').value,job:$('job').value.trim(),client:$('client').value.trim(),guitar:$('guitar').value.trim(),oldb:$('oldb').value.trim(),model,M,fam,tele:!!M.tele,R,B,eff,rAutoVal,
     cut:bk.cut,shim:bk.shim,protrusion:bk.prot,rearNeeded:bk.prot>0.05,rearMin:bk.need,gateMin:bk.gate,
     stack,win,mid,errs,rec,recModel,recR,recB,recBk,et,spd,spC};
 }
@@ -297,7 +380,8 @@ function verdicts(s){
   out.push({c:'rec',h:mine?`Recommendation (you picked ${s.M.name})`:'Recommendation',p:head+rk.why+backTxt+(rk.alt?`<div class="alt">${rk.alt}</div>`:'')});
   if(s.sp!=null){
     const ps=r1(Math.abs(s.spd)/2), card={c:s.spC,h:'String spacing',p:`Old bridge <span class="num">${r1(s.sp)}</span> E to e, the ${s.M.name} is about <span class="num">${r1(s.et)}</span> (10.4 pitch, floating saddles). Difference <span class="num">${s.spd>0?'+':''}${r1(s.spd)} mm</span>, ${ps} per side, outer strings move ${s.spd>0?'in':'out'}. `+
-      (s.spC==='ok'?'Inside the range.':s.spC==='warn'?'Edge of the range. Check the outer strings against the fretboard edges before committing.':'Outside the range. Check where the outer strings land on the neck before going any further.')};
+      (s.spC==='ok'?'Inside the range.':s.spd>0?(s.spC==='warn'?'Strings pull in from the pickup poles. Check pole alignment before committing.':'Strings pull well in from the poles and the old feel. Check pole alignment and the player before going further.')
+        :(s.spC==='warn'?'Strings move toward the fretboard edges. Check the edge clearance at the last fret before committing.':'Strings move a long way toward the edges. Check where they land on the fretboard before going any further.'))};
     if(s.spC==='bad') out.unshift(card); else out.push(card);
   }
   const gate=s.stack>RULES.gateStack;
@@ -325,11 +409,11 @@ function verdicts(s){
   if(s.fam==='G'){
     let c='ok',p;
     const bz=s.bz, front=s.M.long?RULES.glFront:RULES.gFront;
-    if(bz==null){c='warn';p=`Not measured. Scale line to the bridge pickup bezel: up to ${RULES.gLongAt} is G, over is G Long trimmed to fit. EverTune's G page says 5/8" (15.9), the Buying Guide 0.55" (14); confirm.`;}
+    if(bz==null){c='warn';p=`Not measured yet. Full scale length point to the back edge of the bridge pickup bezel: 14 mm (0.55") or less is G standard, longer is G Long so the plate reaches the pickup with no gap.`;}
     else if(!s.M.long&&bz<RULES.gFront){c='bad';p=`G frame front sits <span class="num">${r1(RULES.gFront)}</span> ahead of the scale line, bezel at <span class="num">${r1(bz)}</span>. Hits it by <span class="num">${r1(RULES.gFront-bz)} mm</span>.`;}
-    else if(!s.M.long&&bz>RULES.gLongAt){c='warn';p=`Bezel at <span class="num">${r1(bz)}</span> leaves a <span class="num">${r1(bz-RULES.gFront)} mm</span> gap in front of the G frame. G Long fills it, trimmed to fit.`;}
-    else if(s.M.long&&bz<=RULES.gLongAt){c='warn';p=`G Long front is <span class="num">${r1(RULES.glFront)}</span> ahead of the scale line, bezel at <span class="num">${r1(bz)}</span>: trim <span class="num">${r1(RULES.glFront-bz)} mm</span>. A standard G fits as is.`;}
-    else p=`Bezel at <span class="num">${r1(bz)}</span>. ${s.M.long?`G Long front at ${r1(front)}, trim ${r1(Math.max(0,front-bz))} mm to fit.`:'Standard G fits, frame front at 13.7.'}`;
+    else if(!s.M.long&&bz>RULES.gLongAt){c='warn';p=`Bezel at <span class="num">${r1(bz)}</span> is over 14, so a standard G leaves a <span class="num">${r1(bz-RULES.gFront)} mm</span> gap to the pickup. EverTune says order the G Long.`;}
+    else if(s.M.long&&bz<=RULES.gLongAt){c='warn';p=`Bezel at <span class="num">${r1(bz)}</span> is 14 or less, which is G standard territory. The G Long plate runs to <span class="num">${r1(RULES.glFront)}</span> and would overlap the bezel.`;}
+    else p=`Bezel at <span class="num">${r1(bz)}</span>. ${s.M.long?'Over 14, G Long is right: the plate stretches to the pickup with no gap.':'14 or less, G standard comes right to the bezel.'}`;
     out.push({c,h:'G or G Long',p});
   }
   let rc='ok',rp;
@@ -344,27 +428,104 @@ function verdicts(s){
   }
   out.push({c:rc,h:'Back of the body',p:rp});
   $('verdicts').innerHTML=out.map(v=>`<div class="v ${v.c}"><h3>${v.h}</h3><p>${v.p}</p></div>`).join('');
+  return out;
 }
 
+// Install sequence. F/T from the F&T Template Instructions, G from the G Template Instructions (ET), riser and footplate rules (RG).
+// Router setting = (body + top riser) - depth from top, measured off the original back face.
+function sequence(s){
+  const R=s.R, eff=s.eff, T=s.T, rows=[];
+  const add=(k,a,top='',set='',note='',o={})=>rows.push({k,a,top,set,note,...o});
+  if(s.fam==='F'){
+    const T2=s.tele?'T TOP 2':'F TOP 2';
+    if(R>0) add('Top riser','Fit the top riser. 3-sided, front open','','',`${r1(R)} mm at the scale line. Depths below include it`);
+    add('TOP 1X','Mount to the top in position','','','Centreline and scale line');
+    add('TOP 1','Mount on top of TOP 1X');
+    add('Drill','4 holes through the body, #7 bit (5.11 mm)','through','through');
+    add('Chamfer','Chamfer the thru-holes','','','Takes the finish off the edge');
+    add(T2,'Double-sided tape, two #7 bits in the rear holes as pins');
+    add(T2,'Route the top pocket',`≥ ${r2(25.4+R)}`,`≥ ${r2(25.4+R)} top`,R?`25.4 into the body, through ${r1(R)} of riser first`:'At least 25.4 into the body');
+    if(!s.tele) add('Chamfer','No pickguard only: Dremel the front edge chamfer','','','With a pickguard the 6.35 web can come out instead');
+    add('BOT 1','Mount to the back, aligned on the bits');
+    add('BOT 1','Drill the backplate pilots, 1/16"');
+    add('BOT 1','Chamfer the pilots to 1/8" or more','','','So the finish does not crack');
+    add('BOT 2','Space off the back with the two thin templates, on the four 1/16" bits');
+    const fNote=s.shim>0?`Shim ${r2(s.shim)} mm, footplate stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`
+      :s.cut>=RULES.footThk?`Footplate's own thickness, sits flush, no riser`
+      :s.cut>0?`Limited by the 1 mm tolerance, footplate stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`
+      :`Footplate on the back face, stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`;
+    add('BOT 2 small','Route the footplate recess',`43.18 (design ${r2(eff-43.18)})`,s.cut>0?r2(s.cut):'no cut',fNote,{warn:s.shim>0});
+    add('BOT 2 large','Route the larger pocket','25.4',r2(eff-25.4));
+    add('BOT 3','Route the pocket','21.6',r2(eff-21.6));
+    if(s.tele) add('BOT 4','Skip','6.35','skip','F only, a T skips it',{skip:1});
+    else add('BOT 4','Route the pocket','6.35',r2(eff-6.35),'F only');
+    if(s.shim>0) add('Shim',`Footplate shim, ${r2(s.shim)} mm`,'','','Puts the footplate back at design');
+    add('Install','Bridge in from the top, 4 lugs into the holes');
+    add('Install','Mounting plates (10017) and screws (10031) from below');
+    add('Install','Ground wire under the foot plate (10015), screws (10033)');
+    add('Install',s.B>0?`Back cover riser ${r1(s.B)} mm, then the backplate, 6 screws (10038)`:'Backplate, 6 screws (10038)','','',s.B>0?'Riser goes around the footplate':'');
+    if(s.tele) add('Pickup','Flip the bridge pickup 180 degrees','','','Clears the module nub');
+  }else{
+    const thru=T<46, std=T>=53.3;
+    add('G1','1/2" bearing bit: 1/8" relief recess first','3.2','','So the finish does not pop');
+    add('G1','Drill 25/64" about 3/4" deep, drive the threaded inserts','~19');
+    add('G2 + G2X','Forstner out the pocket to about 1-5/8"','~41.3');
+    add('G2 + G2X','Bearing bit on the edges, dress the floor flat','46.0',thru?'through':`${r2(T-46)} floor`,thru?'Body under 46, the pocket goes through':'');
+    add('Plugs','Cut 1/2" and 1/4" donor plugs, glue, trim flush','','','Old post holes');
+    add('G3X','Transfer-punch the pocket corners, drill 3/16" through, mount G3X','through','through');
+    add('G3X','Front guide route','46.0',thru?'through':r2(T-46),'From the back');
+    add('G3X','Rear guide route','through','through','Through the back into the top pocket');
+    add('G4X','Forstner to about 5/8", dress flat','12.7',r2(T-12.7),'From the back');
+    add('G5X','Back cover recess, G2/G2X and G3X/G4X stacked sideways as spacers','not published','',std?'Body 53.3 or more: both back covers recessed':'Under 53.3: route-through install, F/T backplate covers the back',{warn:!std});
+    add('Install','Ground wire between faceplate and top. Bridge in on the two bolts');
+    add('Install','Foot plate, back plates');
+  }
+  return rows;
+}
 function depths(s){
   const was={};document.querySelectorAll('#depths .done').forEach(c=>was[c.id]=c.checked);
-  if(s.fam==='G'){$('depths').innerHTML=`<tr><td colspan="5" class="flag">G sequence uses Forstner depths from the top (G2 1-5/8", G3X 1-13/16", G4X 1/2") and a 1/2" bearing bit. Not tabulated here in v0.1.</td></tr>`;return;}
-  $('depths').innerHTML=RULES.depths.map(d=>{
-    if(d.top) return `<tr><td><input type="checkbox" class="done" id="done-${d.k.replace(/\W/g,'')}" aria-label="${d.k} done"></td><td>${d.k}</td><td class="n">≥ ${r2(d.d+s.R)}</td><td class="n">≥ ${r2(d.d+s.R)} from the top</td><td class="flag">${d.note}${s.R?`, through ${r1(s.R)} of riser first`:''}</td></tr>`;
-    const rd=s.eff-d.d, fp=d.d===43.18;
-    if(s.tele&&d.k==='BOT 4') return `<tr class="isdone"><td></td><td>${d.k}</td><td class="n">${r2(d.d)}</td><td class="n">skip</td><td class="flag">F only, a T skips it</td></tr>`;
-    if(fp){
-      const cls=s.shim>0?'shim':'';
-      const depth=s.cut>0?`${r2(s.cut)}`:'no cut';
-      const note=s.shim>0?`Footplate shim ${r2(s.shim)} mm, stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`
-        :s.cut>=RULES.footThk?`Footplate's own thickness, sits flush, no riser`
-        :s.cut>0?`Recess limited by the 1 mm tolerance, footplate stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`
-        :`Footplate on the back face, stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`;
-      return `<tr class="${cls}"><td><input type="checkbox" class="done" id="done-${d.k.replace(/\W/g,'')}" aria-label="${d.k} done"></td><td>${d.k}</td><td class="n">${r2(d.d)} (design ${r2(rd)})</td><td class="n">${depth}</td><td class="flag">${note}</td></tr>`;
-    }
-    return `<tr><td><input type="checkbox" class="done" id="done-${d.k.replace(/\W/g,'')}" aria-label="${d.k} done"></td><td>${d.k}</td><td class="n">${r2(d.d)}</td><td class="n">${r2(rd)}</td><td class="flag">${d.note}</td></tr>`;
-  }).join('');
-  document.querySelectorAll('#depths .done').forEach(c=>{c.checked=!!was[c.id];c.closest('tr').classList.toggle('isdone',c.checked);c.addEventListener('change',()=>c.closest('tr').classList.toggle('isdone',c.checked));});
+  const rows=sequence(s); s.seq=rows;
+  $('seqTitle').textContent=s.fam==='F'?`Install sequence, ${s.tele?'T':'F'} templates`:'Install sequence, G templates';
+  $('seqFoot').innerHTML=s.fam==='F'
+    ?'Router setting = (body + top riser) minus the depth from the top, set off the original back face. The back cover riser goes on after and never changes a setting. <span class="tier et">ET</span> F&amp;T Template Instructions, <span class="tier rg">RG</span> riser and footplate.'
+    :'<span class="tier et">ET</span> G Template Instructions. EverTune publishes no G routing sheet, so these are the instruction depths: check them against the templates. G5X recess depth is not published.';
+  $('depths').innerHTML=rows.map((r,i)=>{
+    const id=`done-${s.fam}-${i}`;
+    return `<tr class="${r.skip?'skip':''}${r.warn?' shim':''}"><td>${r.skip?'':`<input type="checkbox" class="done" id="${id}" aria-label="${esc(r.k)} done">`}</td><td>${i+1}</td><td><b>${r.k}</b> ${r.a}</td><td class="n">${r.top}</td><td class="n">${r.set}</td><td class="flag">${r.note}</td></tr>`;}).join('');
+  document.querySelectorAll('#depths .done').forEach(c=>{c.checked=!!was[c.id];c.closest('tr').classList.toggle('isdone',c.checked);c.addEventListener('change',()=>{c.closest('tr').classList.toggle('isdone',c.checked);sheet(lastS,lastV);});});
+}
+
+// Print-only bench sheet: specs, parts to make, flags, the sequence with tick boxes, the section, notes.
+let lastS=null,lastV=[];
+function sheet(s,vs){
+  if(!s) return;
+  const plain=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent;};
+  const done=id=>{const c=$(id);return c&&c.checked;};
+  const name=`${s.M.name}${s.tele?(s.hand==='left'?', left-handed':', right-handed'):''}`;
+  const kv=[['Bridge',`${name}, ${FINISH[s.finish]}`],['Strings',s.n],['String height',`${r1(s.H)} mm @ ${r1(s.act)} action`],
+    ['Body at the bridge',`${r1(s.T)} mm`],['Effective body',`${r2(s.eff)} mm`],['Stack',`${r1(s.stack)} mm (over 53)`],
+    ['Old bridge',s.oldb||'-'],['Spacing E to e',s.sp==null?'-':`${r1(s.sp)} old, ${r1(s.et)} EverTune`],['Saddle window',`${r1(s.win[0])} to ${r1(s.win[1])} mm`]];
+  if(s.fam==='G') kv.push(['Scale to bezel',s.bz==null?'not measured':`${r1(s.bz)} mm`]);
+  const parts=s.fam==='F'?[
+    ['Top riser',s.R?`<span class="big">${r1(s.R)} mm</span> at the scale line. 3-sided, front open.`:'None'],
+    ['Footplate recess',s.cut>0?`<span class="big">${r2(s.cut)} mm</span> deep (BOT 2 small)`:'No cut'],
+    ['Footplate shim',s.shim>0?`<span class="big">${r2(s.shim)} mm</span>`:'None'],
+    ['Back cover riser',s.B>0?`<span class="big">${r1(s.B)} mm</span> thick, the length of the backplate, window for the footplate`:'None']]
+    :[['Top riser','None on a G'],['Back cover','Recessed G back cover (G5X). '+(s.T>=53.3?'Standard install.':'Body under 53.3: route-through, F/T backplate.')]];
+  const flags=vs.filter(v=>v.c==='bad'||v.c==='warn');
+  const id=r=>`done-${s.fam}-${s.seq.indexOf(r)}`;
+  $('sheet').innerHTML=`<div class="sh">
+    <div class="top"><div><div class="brand">Rosco Guitars · EverTune bench sheet · ${new Date().toISOString().slice(0,10)}</div>
+      <h1>${esc(s.job||'Job ____')}${s.client?' · '+esc(s.client):''}</h1><div>${esc(s.guitar||'')}</div></div>
+      ${imgUrl(s)?`<img src="${imgUrl(s)}" alt="">`:''}</div>
+    <h2>Guitar and bridge</h2><div class="kv">${kv.map(([k,v])=>`<div><span>${k}</span>${esc(v)}</div>`).join('')}</div>
+    <h2>Parts to make</h2><table>${parts.map(([k,v])=>`<tr><td style="width:28%">${k}</td><td>${v}</td></tr>`).join('')}</table>
+    <h2>Flags</h2>${flags.length?`<ul>${flags.map(v=>`<li class="flag-${v.c}"><b>${plain(v.h)}:</b> ${plain(v.p)}</li>`).join('')}</ul>`:'<p>None.</p>'}
+    <h2>Install sequence</h2><table class="sq"><colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup><tr><th></th><th>#</th><th>Template / step</th><th>From top</th><th>Router setting</th><th>Note</th></tr>
+      ${s.seq.map((r,i)=>`<tr class="${r.skip?'skip':''}"><td>${r.skip?'':`<span class="box${done(id(r))?' on':''}"></span>`}</td><td>${i+1}</td><td><b>${r.k}</b> ${r.a}</td><td class="n">${r.top}</td><td class="n">${r.set}</td><td>${r.note}</td></tr>`).join('')}</table>
+    <div class="pg2"><h2>Section at the centreline</h2>${$('svg').outerHTML.replace('id="svg"','').replace(/id="(wood|riserhatch)"/g,'id="p-$1"').replace(/url\(#(wood|riserhatch)\)/g,'url(#p-$1)')}
+    <h2>Notes</h2><div class="lines">${'<div></div>'.repeat(8)}</div></div>
+  </div>`;
 }
 
 function draw(s){
@@ -476,31 +637,10 @@ function draw(s){
   const ty=y0-s.H*S; line(mx(uL)-8,ty,mx(uR)+8,ty,'var(--bad)','6 3',1.5);
   txt(mx(uL)-6,ty-5,`string ${r1(s.H)} @ ${r1(s.act)} action`,{s:11,c:'var(--bad)',w:500});
 
-  // ---- top view, below the section. Plan at 2.4 px/mm, nut to the left, scale line shared with the section.
+  // stack line under the section. The plan view is the bridge photo below the drawing now.
   const secBottom=back+Math.max(s.B,0)*S+(m==='F'&&s.B>0?52:40);
   txt(mx(uL),secBottom+8,`stack: body ${r1(s.T)} + back cover riser ${r1(s.B)} + string ${r1(s.H)} = ${r1(s.stack)} mm, gate > 53.`,{s:11,c:s.stack>53?'var(--ok)':'var(--bad)'});
-  const P=2.4, fw=(m==='F'?81.2:96.0)+(n-6)*10.4, pw=66.7+(n-6)*10.4, hw2=(73.2+(n-6)*10.4)/2;
-  const cx=secBottom+60+(fw/2+16)*P; const px=u=>X0-u*P, py=v=>cx+v*P;
-  txt(mx(uL),secBottom+44,'Top view',{s:16,w:600,c:'var(--ink)'});
-  rect(px(112),py(-fw/2-16),(112+72)*P,(fw+32)*P,'url(#wood)','var(--wood-line)');
-  line(px(112),cx,px(-72),cx,'var(--mute)','2 3');line(px(0),py(-fw/2-16)-6,px(0),py(fw/2+16)+6,'var(--mute)','2 3');
-  if(m==='F'){
-    rect(px(fFront),py(-fw/2),(fFront+58.2)*P,fw*P,'none','var(--metal-line)',{d:'4 3',rx:5});
-    if(tele){const a=-16.8,cxp=px(41.1),cyp=py(0);g.push(`<rect x="${cxp-9.5*P}" y="${cyp-37*P}" width="${19*P}" height="${74*P}" rx="${9.5*P}" fill="none" stroke="var(--metal-line)" stroke-dasharray="4 3" transform="rotate(${a} ${cxp} ${cyp})"/>`);txt(px(41.1)-12*P,py(fw/2)-6,'bridge pickup',{s:10});}
-    rect(px(-6.4),py(-pw/2),54.6*P,pw*P,'var(--panel)','var(--wood-line)',{rx:4});
-    for(const [u,v] of [[0,-hw2],[0,hw2],[-52,-hw2],[-52,hw2]]) g.push(`<circle cx="${px(u)}" cy="${py(v)}" r="${2.55*P}" fill="var(--panel)" stroke="var(--wood-line)"/>`);
-    txt(px(-6.4)+6,py(-pw/2)+14,'pocket, through the body',{s:10});txt(px(0)+6,py(-fw/2-16)-6,'#7 holes, front pair on the scale line',{s:10});
-    txt(px(fFront)+4,py(-fw/2)+12,tele?'T plate outline':'faceplate outline',{s:10});
-  }else{
-    rect(px(gF),py(-48),(gF+43.2)*P,96*P,'none','var(--metal-line)',{d:'4 3',rx:8});
-    if(s.bz!=null){line(px(s.bz),py(-fw/2-16),px(s.bz),py(fw/2+16),'var(--warn)','4 3',1.5);txt(px(s.bz)-4,py(fw/2+16)-6,'pickup bezel',{s:10,a:'end',c:'var(--warn)'});}
-    rect(px(8),py(-pw/2),50*P,pw*P,'var(--panel)','var(--wood-line)',{rx:4});
-    for(const v of [-41.3,41.3]) g.push(`<circle cx="${px(-22)}" cy="${py(v)}" r="${4.9*P}" fill="var(--panel)" stroke="var(--wood-line)"/>`);
-    txt(px(8)+6,py(-pw/2)+14,'pocket, schematic',{s:10});txt(px(-22)+14,py(-41.3)+4,'inserts',{s:10});
-  }
-  for(let i=0;i<n;i++){const v=(i-(n-1)/2)*10.4;rect(px(1),py(v-2.5),10*P,5*P,'var(--metal)','var(--metal-line)',{rx:1});}
-  txt(px(-14),py((n-1)/2*10.4)+4,`${n} saddles, 10.4 pitch`,{s:10});
-  const hh=Math.ceil(py(fw/2+16)+30);
+  const hh=Math.ceil(secBottom+20);
   $('svg').setAttribute('viewBox',`0 0 ${W} ${hh}`);
   $('svg').innerHTML=g.join('');
 }
@@ -516,17 +656,22 @@ function run(){const s=calc();
     :s.H<RULES.win.G[0]?`String height ${r1(s.H)} is below the G floor of 14.5; an F fits better.`:s.H>RULES.win.G[1]?`String height ${r1(s.H)} is above the G ceiling of 19.2.`:`String height ${r1(s.H)} is inside the G window.`;
   $('modelNote').innerHTML=(s.model===s.recModel?'<span class="recbadge">recommended</span> '
     :`<span class="recbadge pick">your pick</span> Recommended is ${MODELS[s.recModel].name}. <button type="button" class="link" id="backRec">Back to it</button><br>`)+winTxt+(s.n!==6?` G and T are 6-string only.`:'');
-  $('bzWrap').style.display=s.n===6&&(s.fam==='G'||MODELS[s.recModel].fam==='G'||s.H>RULES.win.F[1])?'':'none';
+  $('bzWrap').style.display=s.fam==='G'?'':'none';
   // risers: auto buttons, locked where the bridge takes none
   $('r').disabled=$('rAuto').disabled=!s.M.riser; $('rAuto').setAttribute('aria-pressed',String(rAuto||!s.M.riser));
   $('b').disabled=$('bAuto').disabled=s.fam!=='F'; $('bAuto').setAttribute('aria-pressed',String(bAuto||s.fam!=='F'));
-  $('rHint').textContent=s.M.riser?'Only material proud of the body top. Max 6. A flush fill of an old recess is 0.':s.tele?'Not used on a T, the plate wraps the bridge pickup.':'Not used on a G for now.';
-  $('bHint').textContent=s.fam==='F'?'Equal to how far the footplate stands proud of the back face. Goes around the footplate. Over 6 needs client approval.':'G uses a recessed back cover. Not modelled yet.';
+  $('rHint').textContent=s.M.riser?'Only what stands proud of the body top. Max 6.':s.tele?'Not used on a T, the plate wraps the bridge pickup.':'Not used on a G for now.';
+  $('bHint').textContent=s.fam==='F'?'How far the footplate stands proud of the back. Over 6 needs client OK.':'G uses a recessed back cover. Not modelled yet.';
   // spacing hint, flagged as soon as it is typed
   const sh=$('spHint');
-  if(s.sp==null){sh.className='hint';sh.textContent=`Centre of the low E to centre of the high e on the old bridge. The ${s.M.name} is about ${r1(s.et)}.`;}
+  if(s.sp==null){sh.className='hint';sh.textContent=`Old bridge, centre to centre. The ${s.M.name} is about ${r1(s.et)}.`;}
   else{sh.className='hint '+s.spC;sh.textContent=s.spC==='bad'?'':`${s.spd>0?'+':''}${r1(s.spd)} mm vs the ${s.M.name} (about ${r1(s.et)}), ${r1(Math.abs(s.spd)/2)} per side. ${s.spC==='ok'?'Inside the range.':'Edge of the range, check the outer strings on the neck.'}`;}
-  verdicts(s);depths(s);draw(s);}
+  $('handWrap').style.display=s.tele?'':'none';
+  $('bzWrap').classList.toggle('req',s.fam==='G');
+  const u=imgUrl(s); if($('bimg').getAttribute('src')!==u){$('bimg').src=u;}
+  $('bimg').alt=`EverTune ${s.M.name}, ${FINISH[s.finish]}`;
+  $('bcap').innerHTML=`<b>EverTune ${s.M.name}</b><span>${FINISH[s.finish]}${s.tele?`, ${s.hand==='left'?'left':'right'}-handed`:''}</span><span class="hint">Photo: EverTune</span>`;
+  const vs=verdicts(s);depths(s);draw(s);lastS=s;lastV=vs;sheet(s,vs);}
 const reset=()=>{pick=null;rAuto=bAuto=true;run();};
 $('strings').addEventListener('change',()=>{pick=null;rAuto=bAuto=true;run();});
 $('model').addEventListener('change',()=>{const v=$('model').value, rm=calc().recModel; pick=v===rm?null:v; rAuto=bAuto=true; run();});
@@ -536,8 +681,17 @@ $('rAuto').addEventListener('click',()=>{rAuto=true;run();});
 $('bAuto').addEventListener('click',()=>{bAuto=true;run();});
 $('reset').addEventListener('click',reset);
 $('modelNote').addEventListener('click',e=>{if(e.target.id==='backRec')reset();});
-['h','act','t','sp','bz'].forEach(id=>$(id).addEventListener('input',run));
-$('callouts').addEventListener('change',run);
+['h','act','t','sp','bz','job','client','guitar','oldb'].forEach(id=>$(id).addEventListener('input',run));
+['finish','hand','callouts'].forEach(id=>$(id).addEventListener('change',run));
+$('print').addEventListener('click',()=>{run();window.print();});
+window.addEventListener('beforeprint',run);
+// Prefill from the URL, the hook for the Airtable job link later: ?job=J273&client=...&guitar=...&n=7&h=11&t=42&sp=64.5
+try{const q=new URLSearchParams(location.search);
+  for(const [k,id] of [['job','job'],['client','client'],['guitar','guitar'],['oldb','oldb'],['h','h'],['t','t'],['act','act'],['sp','sp'],['bz','bz']]) if(q.has(k)) $(id).value=q.get(k);
+  if(['6','7','8'].includes(q.get('n'))) $('strings').value=q.get('n');
+  if(q.get('finish')&&FINISH[q.get('finish')]) $('finish').value=q.get('finish');
+  if(q.get('hand')==='left') $('hand').value='left';
+}catch(e){}
 run();
 })();
 </script>
