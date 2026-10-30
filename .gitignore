@@ -1,0 +1,21 @@
+# Internal notes: stay in RoscoAI, not the public repo
+PROJECT_STATUS.md
+PLAN.md
+CLAUDE.md
+BENDER_HANDOFF*.md
+
+# EverTune's own PDFs and CAD (their copyright) + Rosco notes
+reference/
+
+# Per-job route sheets (client data)
+route-sheet/
+
+# Old local copies
+_archive/
+*.bak.html
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.claude/
