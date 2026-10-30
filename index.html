@@ -56,7 +56,7 @@ button.auto[aria-pressed="true"]{background:var(--accent);color:var(--panel)}
 .fields{display:grid;gap:10px 14px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));align-items:start}
 .step h2{flex-wrap:wrap}
 .step h2 .sub{margin:0;font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
-.bcols{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) minmax(120px,170px);align-items:start}
+.bcols{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) minmax(150px,250px);align-items:start}
 .bsel{display:grid;gap:12px;align-content:start}
 .step{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:14px;display:grid;gap:12px;align-content:start}
 .step h2{display:flex;align-items:center;gap:10px;margin:0;color:var(--ink)}
@@ -82,9 +82,12 @@ button.auto.solid{background:var(--accent);color:var(--accent-ink)}
 input[type=text]{font-family:var(--sans)}
 .job .grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .bridgepic{margin:0;display:grid;gap:6px}
-.bridgepic img{width:100%;height:auto;border-radius:6px;background:#e7e7e7;border:1px solid var(--line)}
-.bridgepic figcaption{font-size:12px;display:grid;gap:2px;color:var(--mute)}
-.bridgepic figcaption b{font-size:14px;color:var(--ink)}
+.bridgepic .tile{position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:10px;background:#e7e7e7}
+.bridgepic .tile.tall{aspect-ratio:1}
+.bridgepic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.bridgepic .tile.zoom img{transform:scale(1.08)}
+.bridgepic figcaption{font-size:12px;display:flex;justify-content:space-between;gap:8px;color:var(--mute)}
+.bridgepic figcaption b{color:var(--ink);font-weight:500}
 table.seq td:nth-child(2){font-family:var(--mono);color:var(--mute)}
 tr.skip td{opacity:.45}
 #sheet{display:none}
@@ -118,6 +121,37 @@ tr.shim td{color:var(--warn)}
 tr.isdone td{opacity:.5;text-decoration:line-through}
 tr.isdone td:first-child{opacity:1;text-decoration:none}
 input.done{width:18px;height:18px;accent-color:var(--accent)}
+/* compact pass */
+body{font-size:14px;padding-block:14px 40px}
+.wrap{gap:12px}
+header{align-items:center}
+h1{font-size:19px}
+h2{font-size:11.5px;margin-bottom:8px}
+.panel{padding:12px 14px;border-radius:10px}
+.steps{gap:12px}
+.step{padding:12px 14px;gap:10px;border-radius:10px;background:var(--panel)}
+.step h2 i{width:20px;height:20px;font-size:11px}
+.step h2 .sub{font-size:11.5px}
+label{gap:3px;font-size:12px}
+label b{font-size:12px;font-weight:500}
+input[type=number],input[type=text],select{font-size:15px;padding:0 10px;height:34px;border-radius:7px}
+.row{gap:5px}
+.hint,.err{font-size:11.5px}
+.fields{gap:8px 12px}
+.bsel{gap:10px}
+button.auto{padding:0 11px;height:30px;font-size:12px;border-radius:7px}
+.row button.auto{height:34px}
+.v{padding:8px 11px}.v h3{font-size:11px}.v p{font-size:13px}
+.verdicts{gap:8px}
+.recbadge{font-size:9.5px}
+.jobbar{display:grid;grid-template-columns:auto minmax(80px,.6fr) 1fr 1.3fr 1.3fr;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 8px 7px 12px}
+.jobbar input{height:30px;font-size:13.5px;background:var(--bg);border-color:transparent}
+.jobbar input:hover{border-color:var(--line)}
+.jtag{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+select{font-family:var(--sans)}
+@media (max-width:600px){.bcols{grid-template-columns:minmax(0,1fr)}.bridgepic{max-width:340px}}
+@media (max-width:760px){.jobbar{grid-template-columns:1fr 1fr}.jtag{display:none}
+  input[type=number],input[type=text],select,.jobbar input{font-size:16px}}
 @media print{
   @page{size:letter;margin:12mm}
   :root{--bg:#fff;--panel:#fff;--panel2:#fff;--ink:#111;--mute:#444;--line:#999;--wood:#eee;--wood-line:#555;--metal:#ccc;--metal-line:#333;--accent:#0b7a70;--accent-ink:#fff;--accent-soft:#eef;--ok:#0b7a70;--ok-soft:#f3f3f3;--warn:#8a5a00;--warn-soft:#f3f3f3;--bad:#b3261e;--bad-soft:#f3f3f3;--riser:#7fd9cf;--riser-line:#0b7a70;color-scheme:light}
@@ -169,14 +203,12 @@ footer ul{margin:6px 0 0;padding-left:18px}
   <span class="hbtns"><button type="button" class="auto" id="reset">Reset to recommended</button><button type="button" class="auto solid" id="print">Print bench sheet</button></span>
 </header>
 
-<section class="panel job">
-  <h2>Job <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">optional, prints on the bench sheet</span></h2>
-  <div class="grid">
-    <label><b>Job #</b><input type="text" id="job" placeholder="J273" autocomplete="off"></label>
-    <label><b>Client</b><input type="text" id="client" autocomplete="off"></label>
-    <label><b>Guitar</b><input type="text" id="guitar" placeholder="make, model, colour" autocomplete="off"></label>
-    <label><b>Old bridge</b><input type="text" id="oldb" placeholder="e.g. Hipshot Ibby HM 7, recessed" autocomplete="off"></label>
-  </div>
+<section class="jobbar" aria-label="Job, optional, prints on the bench sheet">
+  <span class="jtag">Job</span>
+  <input type="text" id="job" placeholder="Job #" aria-label="Job number" autocomplete="off">
+  <input type="text" id="client" placeholder="Client" aria-label="Client" autocomplete="off">
+  <input type="text" id="guitar" placeholder="Guitar" aria-label="Guitar" autocomplete="off">
+  <input type="text" id="oldb" placeholder="Old bridge" aria-label="Old bridge" autocomplete="off">
 </section>
 
 <section class="steps">
@@ -217,7 +249,7 @@ footer ul{margin:6px 0 0;padding-left:18px}
         <label id="handWrap"><b>Handed</b>
           <select id="hand"><option value="right" selected>Right-handed</option><option value="left">Left-handed</option></select></label>
       </div>
-      <figure class="bridgepic"><img id="bimg" alt="" width="1200" height="1200" decoding="async"><figcaption id="bcap"></figcaption></figure>
+      <figure class="bridgepic"><div class="tile" id="btile"><img id="bimg" alt="" width="1200" height="1200" decoding="async"></div><figcaption id="bcap"></figcaption></figure>
     </div>
   </div>
   <div class="step" id="step3">
@@ -670,7 +702,8 @@ function run(){const s=calc();
   $('bzWrap').classList.toggle('req',s.fam==='G');
   const u=imgUrl(s); if($('bimg').getAttribute('src')!==u){$('bimg').src=u;}
   $('bimg').alt=`EverTune ${s.M.name}, ${FINISH[s.finish]}`;
-  $('bcap').innerHTML=`<b>EverTune ${s.M.name}</b><span>${FINISH[s.finish]}${s.tele?`, ${s.hand==='left'?'left':'right'}-handed`:''}</span><span class="hint">Photo: EverTune</span>`;
+  $('bcap').innerHTML=`<span><b>${s.M.name}</b> · ${FINISH[s.finish]}${s.tele?`, ${s.hand==='left'?'lefty':'righty'}`:''}</span><span class="hint">Photo: EverTune</span>`;
+  $('btile').classList.toggle('tall',s.tele); $('btile').classList.toggle('zoom',s.model==='F6');
   const vs=verdicts(s);depths(s);draw(s);lastS=s;lastV=vs;sheet(s,vs);}
 const reset=()=>{pick=null;rAuto=bAuto=true;run();};
 $('strings').addEventListener('change',()=>{pick=null;rAuto=bAuto=true;run();});
