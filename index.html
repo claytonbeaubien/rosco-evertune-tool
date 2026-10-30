@@ -133,6 +133,9 @@ footer ul{margin:6px 0 0;padding-left:18px}
     <p class="sub" id="sub2">Recommend mode picks this for you. Switch to Manual to try the other bridge.</p>
     <label><b>Model</b>
       <select id="model"><option value="auto">Recommended</option><option value="F">F / T</option><option value="G">G</option></select></label>
+    <label id="styleWrap"><b>Plate style</b>
+      <select id="style"><option value="F">F, standard faceplate</option><option value="T">T, Tele plate with the bridge pickup</option></select>
+      <span class="hint">Same routes and depths. Changes the drawing only.</span></label>
     <label><b>Strings</b>
       <select id="strings"><option value="6">6 (F / T / G)</option><option value="7" selected>7 (F7)</option><option value="8">8 (F8)</option></select>
       <span class="hint">Changes pocket width and hole spacing in the top view only. Depths are the same.</span></label>
@@ -257,7 +260,7 @@ function calc(){
   if(T<30) errs.t='Under 30. Check the measurement.';
   if(mode==='man'&&num('r')>RULES.topRiserMax) errs.r='Capped at 6. Above that the bridge fouls the bridge pickup. Use a G.';
   if(B>RULES.rearRiserMax) errs.b='Over 6 gets bulky on the back. Client approval.';
-  return {H,T,act,model,R,B,eff,bot2s,cut,shim,protrusion,rearNeeded,rearMin,gateMin,stack,win,mid,errs,rec};
+  return {style:$('style').value,H,T,act,model,R,B,eff,bot2s,cut,shim,protrusion,rearNeeded,rearMin,gateMin,stack,win,mid,errs,rec};
 }
 
 function verdicts(s){
@@ -319,8 +322,8 @@ function depths(s){
 
 function draw(s){
   // Section: x axis is distance AHEAD of the scale line (toward the nut) in mm, drawn right to left. Depths to scale. F pocket lengths from ET001 F7 Body Route Dimensions; G lengths schematic.
-  const S=5, W=1000, X0=580; const mx=u=>X0-u*S;
   const callouts=$('callouts').checked, n=parseInt($('strings').value,10);
+  const S=5, W=callouts?1100:1010, X0=W-410; const mx=u=>X0-u*S;
   const g=[];
   const txt=(x,y,t,o={})=>g.push(`<text x="${x}" y="${y}" font-size="${o.s||11}" fill="${o.c||'var(--mute)'}" text-anchor="${o.a||'start'}" font-weight="${o.w||400}">${t}</text>`);
   const line=(x1,y1,x2,y2,c,d,w)=>g.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w||1}" ${d?`stroke-dasharray="${d}"`:''}/>`);
@@ -331,48 +334,81 @@ function draw(s){
     <pattern id="riserhatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="5" height="5" fill="var(--riser)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--riser-line)" stroke-width="1"/></pattern>
   </defs>`);
   const T=s.T, bodyPx=T*S, m=s.model, R=s.R;
-  const topM=Math.max(150,s.H*S+70), y0=topM, back=y0+bodyPx, ft=y0-R*S;
+  const topM=Math.max(150,s.H*S+70,(m==='G'?24.4:s.R+14.7)*S+55), y0=topM, back=y0+bodyPx, ft=y0-R*S;
   const clampY=y=>Math.min(Math.max(y,y0),back);
   const uL=112, uR=-72; // drawn extent ahead / behind the scale line
-  txt(mx(uL),30,`${m==='F'?'F / T model':'G model'}`,{s:26,w:600,c:'var(--accent)'});txt(mx(uL),50,'section at the centreline, nut to the left',{s:12});
+  txt(mx(uL),30,`${m==='F'?(s.style==='T'?'T model':'F model'):'G model'}`,{s:26,w:600,c:'var(--accent)'});txt(mx(uL),50,'section at the centreline, nut to the left',{s:12});
   // body with pockets (evenodd)
   let d=`M${mx(uL)} ${y0} H${mx(uR)} V${back} H${mx(uL)} Z `;
   if(m==='F'){
-    d+=`M${mx(6.4)} ${y0} H${mx(-61)} V${back} H${mx(6.4)} Z `;                                                        // main pocket, through full depth
-    d+=`M${mx(101.6)} ${back} V${clampY(ft+21.6*S)} H${mx(55.9)} V${clampY(ft+6.35*S)} H${mx(19.1)} L${mx(6.4)} ${clampY(ft+1.8*S)} V${back} Z `; // BOT 3, BOT 4 web, chamfer
+    d+=`M${mx(101.6)} ${back} V${clampY(ft+21.6*S)} H${mx(55.9)} V${clampY(ft+6.35*S)} H${mx(19.1)} L${mx(6.4)} ${clampY(ft+1.8*S)} V${y0} H${mx(-61)} V${back} Z `; // one outline: BOT 3, BOT 4 web and chamfer, main pocket through
     if(s.cut>0) d+=`M${mx(101.6)} ${back} V${back-s.cut*S} H${mx(76.2)} V${back} Z `;                        // footplate recess (ears)
   }else{
-    d+=`M${mx(8)} ${y0} H${mx(-42)} V${clampY(y0+46*S)} H${mx(8)} Z `;                                                   // G2X main pocket, 1-13/16 from top
-    d+=`M${mx(48)} ${back} V${clampY(y0+12.7*S)} H${mx(8)} V${back} Z `;                                                 // G4X back pocket, 1/2 from top
-    d+=`M${mx(-6)} ${back} V${clampY(y0+46*S)} H${mx(-42)} V${back} Z `;                                                 // G3X rear route into the pocket
+    d+=`M${mx(101.6)} ${back} V${clampY(y0+12.7*S)} H${mx(44.5)} V${clampY(y0+6.35*S)} H${mx(19.1)} L${mx(8)} ${clampY(y0+1.8*S)} V${y0} H${mx(-42)} V${back} H${mx(-6)} V${clampY(y0+46*S)} H${mx(8)} V${back} Z `; // one outline, double step like the F: G4X from the back to 1/2 from top (101.6 to 44.5, ET001 G section), second step 6.35 + chamfer (F BOT 4 numbers, RG, confirm), G2X main pocket, G3X rear route
   }
   g.push(`<path d="${d}" fill="url(#wood)" stroke="var(--wood-line)" stroke-width="1.2" fill-rule="evenodd"/>`);
   txt(mx(uL)+6,back-6,`body ${r1(T)}`,{c:'var(--ink)',s:11});
-  // hardware. F: faceplate 70.5 ahead to 58.2 behind, housing behind the saddle rising to the window ceiling. G: frame 13.7 ahead to 43.2 behind, 23.1 tall at the back.
+  // hardware, side elevation. Profiles traced from ET001 F&T and ET001 G Overall Dimensions (2017e01, full scale): u = mm ahead of the scale line, h = mm up from the mounting face.
+  // F: faceplate 10.3 ahead (F model front) to 58.2 behind, saddle floor 5.6, housing 13.0. T adds the Tele plate from 70.5, 2.8 tall, with the bridge pickup. G: frame 13.7 ahead to 60.7 behind, housing 23.1.
+  const hp=(base,cmds)=>cmds.map(c=>{const t=c[0],v=c.slice(1),q=[];for(let i=0;i<v.length;i+=2)q.push(mx(v[i]).toFixed(1)+' '+(base-v[i+1]*S).toFixed(1));return t+q.join(' ');}).join(' ');
+  const hw=(base,cmds,f,st,o={})=>g.push(`<path d="${hp(base,cmds)}${o.open?'':' Z'}" fill="${f||'var(--metal)'}" stroke="${st||'var(--metal-line)'}" stroke-width="${o.w||1.2}" ${o.op?`opacity="${o.op}"`:''} stroke-linejoin="round"/>`);
+  const hl=(base,cmds,o={})=>hw(base,cmds,'none','var(--metal-line)',{open:1,w:o.w||.8,op:o.op||.7});
+  const tele=m==='F'&&s.style==='T', fFront=tele?70.5:10.3;
   if(m==='F'){
-    if(R>0){rect(mx(-45),ft,(58.2-45)*S,R*S,'url(#riserhatch)','var(--riser-line)');rect(mx(70.5),ft,(70.5-6.4)*S,R*S,'none','var(--riser-line)',{d:'3 3'});if(R>=2)txt(mx(70.5),ft+R*S/2+3,'front open (3-sided) or recessed trim',{s:9,c:'var(--riser-line)'});txt(mx(-59),ft-5,`riser ${r1(R)}`,{s:10,c:'var(--riser-line)',a:'end'});}
-    const hw=[[70.5,0],[70.5,1.6],[68,2.1],[-12,2.1],[-12,3.2],[-18,3.2],[-24,9],[-26,13.2],[-29,13.6],[-50,13.6],[-54,12.5],[-58.2,9],[-58.2,0]];
-    poly(hw.map(p=>[mx(p[0]),ft-p[1]*S]),'var(--metal)','var(--metal-line)');
-    rect(mx(2),ft+2.5*S,52*S,Math.max(0,back-ft-2.5*S-4),'var(--metal)','var(--metal-line)',{rx:2,op:.45}); // module in the pocket
+    if(R>0){rect(mx(-45),ft,(58.2-45)*S,R*S,'url(#riserhatch)','var(--riser-line)');rect(mx(fFront),ft,(fFront+45)*S,R*S,'none','var(--riser-line)',{d:'3 3'});if(R>=2)txt(mx(fFront)+4,ft+R*S/2+3,'sides only, front open (3-sided)',{s:9,c:'var(--riser-line)'});txt(mx(-59)+5,ft+R*S/2+4,`top riser ${r1(R)}`,{s:10,c:'var(--riser)'});}
+    if(tele){
+      hw(ft,[['M',70.5,0],['L',70.5,2.1],['Q',70.5,2.8,69.8,2.8],['L',9,2.8],['L',9,0]]);
+      hw(ft,[['M',58.4,2.8],['L',58.4,3.9],['L',23.7,5.8],['L',23.7,2.8]],'var(--panel2)');      // bridge pickup, slanted, seen from the side
+      const pt=u=>3.9+(58.4-u)*(1.9/34.7);
+      for(let i=0;i<6;i++){const u=49.6-i*3.38;hw(ft,[['M',u+1.4,pt(u+1.4)],['L',u+1.4,pt(u+1.4)+.55],['L',u-1.4,pt(u-1.4)+.55],['L',u-1.4,pt(u-1.4)]],'var(--metal)','var(--metal-line)',{w:.8});}
+    }
+    hw(ft,[['M',10.3,0],['L',10.3,6.2],['Q',10.3,7,9.5,7],['L',7.9,7],['Q',7.2,7,7.1,6.3],['L',7,5.6],['L',-27,5.6],['L',-27,12],['Q',-27,13,-28,13],['L',-50.4,13],['Q',-51.2,13,-51.5,12.4],['L',-58.2,0]]);
+    hl(ft,[['M',10,4.2],['L',-26.6,4.2]]);                       // side fillet
+    hl(ft,[['M',-27,11.6],['L',-51.9,11.6]]);                    // top chamfer edge
+    hl(ft,[['M',-27,6.7],['L',-54.6,6.7]]);                      // housing parting line
+    hl(ft,[['M',-38.5,13],['Q',-43.5,12.4,-48.5,13]]);           // top dish
+    hw(ft,[['M',-28.8,13],['L',-28.8,14.7],['L',-33.6,14.7],['L',-33.6,13]]);   // threaded stud
+    for(const h of [13.5,14,14.4]) hl(ft,[['M',-28.8,h],['L',-33.6,h]],{op:.9});
+    const ku=h=>-51.5-(12.4-h)*.5403, nu=-.88*1.1, nh=.4755*1.1;   // fine tuner knob on the rear slope
+    hw(ft,[['M',ku(8.2),8.2],['L',ku(8.2)+nu,8.2+nh],['L',ku(3.2)+nu,3.2+nh],['L',ku(3.2),3.2]]);
   }else{
-    const hw=[[13.7,0],[13.7,10.6],[11,11.6],[-6,11.8],[-9,19.2],[-26,19.4],[-31,22.6],[-37,23.1],[-41,21],[-43.2,12],[-43.2,0]];
-    poly(hw.map(p=>[mx(p[0]),y0-p[1]*S]),'var(--metal)','var(--metal-line)');
-    rect(mx(2),y0+2.5*S,40*S,Math.max(0,Math.min(back,y0+46*S)-y0-2.5*S-4),'var(--metal)','var(--metal-line)',{rx:2,op:.45});
+    hw(y0,[['M',13.5,0],['L',13.7,4.6],['L',5,8.5],['Q',4.6,8.7,4.5,9.1],['L',4.4,9.6],['L',2.8,9.6],['L',2.7,9.3],['L',-25.4,11.3],['Q',-27,11.5,-27,13],['L',-27,22],['Q',-27,22.9,-28,22.9],['L',-49.4,23.6],['Q',-51.2,23.6,-52,22.6],['C',-56.5,17,-60,9,-60.7,0]]);
+    hl(y0,[['M',2.7,8.7],['L',-25.6,10.7]]);                     // saddle floor plate
+    hl(y0,[['M',-27.6,14.6],['L',-50,16.4]],{op:.5});
+    hw(y0,[['M',-29.5,22.95],['L',-29.5,24.4],['L',-33.5,24.4],['L',-33.5,23.1]]);  // threaded stud
+    for(const h of [23.5,23.9]) hl(y0,[['M',-29.5,h],['L',-33.5,h]],{op:.9});
   }
-  // one saddle at the scale line, top on the string. Break point at the scale line, body of the saddle behind it.
-  const w=RULES.win[m].map(v=>v+(m==='F'?R:0)), inW=s.H>=w[0]&&s.H<=w[1], top=y0-s.H*S, seat=m==='F'?ft-2.1*S:y0-11.8*S;
-  poly([[mx(1),seat],[mx(1),top+1.2*S],[mx(0),top],[mx(-7),top],[mx(-9),top+1.5*S],[mx(-9),seat]],inW?'var(--metal)':'var(--bad-soft)',inW?'var(--metal-line)':'var(--bad)');
+  // one saddle, break point on the scale line, top on the target string height. Body slopes back about 0.22 and drops below the saddle floor when it is low.
+  const w=RULES.win[m].map(v=>v+(m==='F'?R:0)), inW=s.H>=w[0]&&s.H<=w[1];
+  const seatH=u=>m==='F'?R+5.6:9.3+(2.7-u)*(2/28.1), sL=m==='F'?19:17.5, sk=.22, Ht=s.H;
+  const sp=[[.8,seatH(.8)],[.8,Ht-.9],[.4,Ht-.25],[-.2,Ht],[-(sL-1.2),Ht-sk*(sL-1)],[-(sL-.3),Ht-sk*(sL-1)-.6],[-sL,Ht-sk*(sL-1)-1.4],[-sL,seatH(-sL)]].map(([u,h])=>[u,Math.max(h,seatH(u))]);
+  poly(sp.map(([u,h])=>[mx(u),y0-h*S]),inW?'var(--metal)':'var(--bad-soft)',inW?'var(--metal-line)':'var(--bad)',{w:1.2});
   // window band just ahead of the saddle
   const wy1=y0-w[1]*S, wy2=y0-w[0]*S;
   rect(mx(9),wy1,6*S,wy2-wy1,'var(--ok-soft)','var(--ok)',{op:.9});line(mx(9),(wy1+wy2)/2,mx(3),(wy1+wy2)/2,'var(--ok)','3 2',1.5);
   txt(mx(10),wy1-3,`max ${r1(w[1])}`,{s:10,c:'var(--ok)',a:'end'});txt(mx(10),wy2+11,`min ${r1(w[0])}`,{s:10,c:'var(--ok)',a:'end'});
   // rear riser, footplate, through pocket
   if(m==='F'){
-    const FTpx=RULES.footThk*S, fpTop=back-s.cut*S+s.shim*S;
-    if(s.B>0){rect(mx(108),back,(108-104)*S,s.B*S,'url(#riserhatch)','var(--riser-line)');rect(mx(72),back,(72-66)*S,s.B*S,'url(#riserhatch)','var(--riser-line)');txt(mx(64),back+s.B*S/2+4,`back cover riser ${r1(s.B)}`,{s:10,c:'var(--riser-line)'});rect(mx(110),back+s.B*S,(110+68)*S,1.2*S,'var(--metal)','var(--metal-line)',{op:.6});txt(mx(-70)+4,back+s.B*S+1.2*S+11,'backplate',{s:10,a:'end'});}
-    if(s.shim>0){rect(mx(101.6),back,(101.6-76.2)*S,s.shim*S,'url(#riserhatch)','var(--riser-line)');}
-    rect(mx(101.6),fpTop,(101.6-76.2)*S,FTpx,'var(--metal)','var(--metal-line)');
-    txt(mx(101.6),fpTop+FTpx+12,s.shim>0?`footplate on ${r2(s.shim)} shim`:s.cut>0?`footplate, ${r2(s.cut)} recess`:'footplate on the back face',{s:10});
+    const FTpx=RULES.footThk*S, fpTop=back-s.cut*S+s.shim*S, fpL=mx(101.6), fpR=mx(76.2);
+    const fpLabel=s.shim>0?`footplate on ${r2(s.shim)} shim`:s.cut>0?`footplate, ${r2(s.cut)} recess`:'footplate on the back face';
+    if(s.B>0){
+      // back cover riser: one plate the length of the backplate, window where the footplate sits, thickness called out at both ends
+      const xa=mx(110), xb=mx(-68), rh=s.B*S, wh=Math.min(rh,Math.max(0,s.protrusion)*S), by=back+rh;
+      g.push(`<path d="M${xa} ${back} H${xb} V${by} H${xa} Z ${wh>0?`M${fpL-3} ${back} H${fpR+3} V${back+wh} H${fpL-3} Z`:''}" fill="url(#riserhatch)" stroke="var(--riser-line)" stroke-width="1" fill-rule="evenodd"/>`);
+      rect(xa,by,xb-xa,1.2*S,'var(--metal)','var(--metal-line)',{op:.6});
+      for(const [x,dir] of [[xa,-1],[xb,1]]){
+        const xd=x+dir*9;
+        line(x+dir*2,back,x+dir*13,back,'var(--riser-line)');line(x+dir*2,by,x+dir*13,by,'var(--riser-line)');line(xd,back,xd,by,'var(--riser-line)',null,1.2);
+        txt(x+dir*16,back+rh/2+4,r1(s.B),{s:12,c:'var(--riser)',w:600,a:dir<0?'end':'start'});
+      }
+      const ly=by+1.2*S+13;
+      txt(fpL,ly,fpLabel,{s:10});
+      txt(mx(52),ly,`back cover riser ${r1(s.B)}`,{s:10,c:'var(--riser)'});
+      txt(xb,ly,'backplate',{s:10,a:'end'});
+    }
+    if(s.shim>0) rect(fpL,back,fpR-fpL,s.shim*S,'var(--riser)','var(--riser-line)',{op:.5});
+    rect(fpL,fpTop,fpR-fpL,FTpx,'var(--metal)','var(--metal-line)');
+    if(s.B<=0) txt(fpL,fpTop+FTpx+12,fpLabel,{s:10});
     if(s.rearNeeded&&s.B===0) txt(mx(64),back+14,'backplate will not clear the footplate, needs a back cover riser',{s:10,c:'var(--bad)'});
     if(callouts){
       for(const dd of RULES.depths){
@@ -384,16 +420,16 @@ function draw(s){
       txt(mx(-61)-4,y0+14,'through',{s:10,a:'end'});
     }
   }else{
-    if(callouts){txt(mx(-42)-4,clampY(y0+46*S)+12,`G2X floor 46${46>T?' (through)':''}`,{s:10,a:'end'});txt(mx(uL)-6,y0+12.7*S+4,'G4X 12.7',{s:10,a:'end'});}
-    txt(mx(uL),back+16,'G pocket lengths schematic, no routing sheet published. G wants 53.2 body (thin) to 60.9 (typical).',{s:10});
+    if(callouts){txt(mx(-42)-4,clampY(y0+46*S)+12,`G2X floor 46${46>T?' (through)':''}`,{s:10,a:'end'});for(const [dd,k] of [[12.7,'G4X 12.7'],[6.35,'step 6.35']]){line(mx(uL)-4,y0+dd*S,mx(uL)-18,y0+dd*S,'var(--metal-line)');txt(mx(uL)-22,y0+dd*S+4,k,{s:10,a:'end'});}}
+    txt(mx(uL),back+16,'G cutout schematic: G4X 1/2 from top (ET001 G), front step at the F BOT 4 depth. G body 53.2 (thin) to 60.9 (typical).',{s:10});
   }
   // scale line and string
-  line(X0,62,X0,back+34,'var(--mute)','2 3');txt(X0+4,72,'scale line',{s:10});
+  line(X0,62,X0,back+34,'var(--mute)','2 3');txt(X0+4,58,'scale line',{s:10});
   const ty=y0-s.H*S; line(mx(uL)-8,ty,mx(uR)+8,ty,'var(--bad)','6 3',1.5);
   txt(mx(uL)-6,ty-5,`string ${r1(s.H)} @ ${r1(s.act)} action`,{s:11,c:'var(--bad)',w:500});
 
   // ---- top view, below the section. Plan at 2.4 px/mm, nut to the left, scale line shared with the section.
-  const secBottom=back+Math.max(s.B,0)*S+40;
+  const secBottom=back+Math.max(s.B,0)*S+(m==='F'&&s.B>0?52:40);
   txt(mx(uL),secBottom+8,`stack: body ${r1(s.T)} + back cover riser ${r1(s.B)} + string ${r1(s.H)} = ${r1(s.stack)} mm, gate > 53.`,{s:11,c:s.stack>53?'var(--ok)':'var(--bad)'});
   const P=2.4, fw=(m==='F'?81.2:96.0)+(n-6)*10.4, pw=66.7+(n-6)*10.4, hw2=(73.2+(n-6)*10.4)/2;
   const cx=secBottom+60+(fw/2+16)*P; const px=u=>X0-u*P, py=v=>cx+v*P;
@@ -401,11 +437,12 @@ function draw(s){
   rect(px(112),py(-fw/2-16),(112+72)*P,(fw+32)*P,'url(#wood)','var(--wood-line)');
   line(px(112),cx,px(-72),cx,'var(--mute)','2 3');line(px(0),py(-fw/2-16)-6,px(0),py(fw/2+16)+6,'var(--mute)','2 3');
   if(m==='F'){
-    rect(px(70.5),py(-fw/2),128.7*P,fw*P,'none','var(--metal-line)',{d:'4 3',rx:5});
+    rect(px(fFront),py(-fw/2),(fFront+58.2)*P,fw*P,'none','var(--metal-line)',{d:'4 3',rx:5});
+    if(tele){const a=-16.8,cxp=px(41.1),cyp=py(0);g.push(`<rect x="${cxp-9.5*P}" y="${cyp-37*P}" width="${19*P}" height="${74*P}" rx="${9.5*P}" fill="none" stroke="var(--metal-line)" stroke-dasharray="4 3" transform="rotate(${a} ${cxp} ${cyp})"/>`);txt(px(41.1)-12*P,py(fw/2)-6,'bridge pickup',{s:10});}
     rect(px(-6.4),py(-pw/2),54.6*P,pw*P,'var(--panel)','var(--wood-line)',{rx:4});
     for(const [u,v] of [[0,-hw2],[0,hw2],[-52,-hw2],[-52,hw2]]) g.push(`<circle cx="${px(u)}" cy="${py(v)}" r="${2.55*P}" fill="var(--panel)" stroke="var(--wood-line)"/>`);
     txt(px(-6.4)+6,py(-pw/2)+14,'pocket, through the body',{s:10});txt(px(0)+6,py(-fw/2-16)-6,'#7 holes, front pair on the scale line',{s:10});
-    txt(px(70.5)+4,py(-fw/2)+12,'faceplate outline',{s:10});
+    txt(px(fFront)+4,py(-fw/2)+12,tele?'T plate outline':'faceplate outline',{s:10});
   }else{
     rect(px(13.7),py(-48),56.9*P,96*P,'none','var(--metal-line)',{d:'4 3',rx:8});
     rect(px(8),py(-pw/2),50*P,pw*P,'var(--panel)','var(--wood-line)',{rx:4});
@@ -431,8 +468,9 @@ function run(){const s=calc();
   $('modelNote').innerHTML=(mode==='rec'?'<span class="recbadge">recommended</span> ':'')+(s.model==='F'
     ?`<b>F / T selected.</b> ${s.H>RULES.win.F[1]?`String height ${r1(s.H)} is above the F ceiling of 13.5; needs ${r1(s.H-RULES.win.F[1])} mm or more of top riser.`:`String height ${r1(s.H)} is inside the F window.`}`
     :`<b>G selected.</b> ${s.H<RULES.win.G[0]?`String height ${r1(s.H)} is below the G floor of 14.5; an F with a riser fits better.`:s.H>RULES.win.G[1]?`String height ${r1(s.H)} is above the G ceiling of 19.2. Not a candidate at this action.`:`String height ${r1(s.H)} is inside the G window. No top riser on a G.`}`);
+  $('styleWrap').style.display=s.model==='F'?'':'none';
   verdicts(s);depths(s);draw(s);}
-['h','act','t','r','b','model','strings'].forEach(id=>$(id).addEventListener('input',run));
+['h','act','t','r','b','model','strings','style'].forEach(id=>$(id).addEventListener('input',run));
 $('callouts').addEventListener('change',run);
 setMode('rec');
 })();
