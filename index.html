@@ -615,6 +615,7 @@ function modXf(s,o){
   const tx=mx(0)-dx, th=Math.atan2(-dy,dx)-Math.atan2(MOD.peak[1]-MOD.bot[1],MOD.peak[0]-MOD.bot[0]);
   const c=Math.cos(th),sn=Math.sin(th);
   // never past the back of the body (or the backplate when there is a back riser): lift the module if the tilt would push it through
+  // the back cover riser is a frame around the cavity, open in the middle (Rosco printed risers): the module may sit inside its thickness, never past the backplate
   let ty=Ty-lift; const lim=back+Math.max(0,s.B)*S-.3*S;
   let low=-1e9; for(const p of MOD.pts){const y=ty+sn*(p[0]-MOD.bot[0])*sc+c*(p[1]-MOD.bot[1])*sc; if(y>low)low=y;}
   if(low>lim) ty-=low-lim;
@@ -706,9 +707,9 @@ function draw(s){
     const FTpx=RULES.footThk*S, fpTop=back-s.cut*S+s.shim*S, fpL=mx(101.6), fpR=mx(76.2);
     const fpLabel=s.shim>0?`footplate on ${r2(s.shim)} shim`:s.cut>0?`footplate, ${r2(s.cut)} recess`:'footplate on the back face';
     if(s.B>0){
-      // back cover riser: one plate the length of the backplate, window where the footplate sits, thickness called out at both ends
-      const xa=mx(110), xb=mx(-68), rh=s.B*S, wh=Math.min(rh,Math.max(0,s.protrusion)*S), by=back+rh;
-      g.push(`<path d="M${xa} ${back} H${xb} V${by} H${xa} Z ${wh>0?`M${fpL-3} ${back} H${fpR+3} V${back+wh} H${fpL-3} Z`:''}" fill="url(#riserhatch)" stroke="var(--riser-line)" stroke-width="1" fill-rule="evenodd"/>`);
+      // back cover riser: a frame around the cavity (Rosco printed risers), open across the middle, so at the centreline it only shows past the cavity ends. Backplate closes it. Thickness called out at both ends
+      const xa=mx(110), xb=mx(-68), rh=s.B*S, by=back+rh;
+      g.push(`<path d="M${xa} ${back} H${mx(101.6)} V${by} H${xa} Z M${mx(-58.42)} ${back} H${xb} V${by} H${mx(-58.42)} Z" fill="url(#riserhatch)" stroke="var(--riser-line)" stroke-width="1"/>`);
       rect(xa,by,xb-xa,1.2*S,'var(--metal)','var(--metal-line)',{op:.6});
       for(const [x,dir] of [[xa,-1],[xb,1]]){
         const xd=x+dir*9;
@@ -736,8 +737,8 @@ function draw(s){
   }else{
     if(callouts){for(const [dd,k] of [[12.7,'ceiling 12.7']]){line(mx(uL)-4,y0+dd*S,mx(uL)-18,y0+dd*S,'var(--metal-line)');txt(mx(uL)-22,y0+dd*S+4,k,{s:10,a:'end'});}}
     if(s.bz!=null){line(mx(s.bz),y0-30*S,mx(s.bz),y0,'var(--warn)','4 3',1.5);txt(mx(s.bz)-4,y0-30*S+10,'pickup bezel',{s:10,a:'end',c:'var(--warn)'});}
-    if(s.B>0){const xa=mx(104),xb=mx(-64),rh=s.B*S,by=back+rh;
-      g.push(`<path d="M${xa} ${back} H${xb} V${by} H${xa} Z" fill="url(#riserhatch)" stroke="var(--riser-line)" stroke-width="1"/>`);
+    if(s.B>0){const xa=mx(104),xb=mx(-64),rh=s.B*S,by=back+rh;   // riser frame around the cavity, open in the middle
+      g.push(`<path d="M${xa} ${back} H${mx(97.79)} V${by} H${xa} Z M${mx(-60.33)} ${back} H${xb} V${by} H${mx(-60.33)} Z" fill="url(#riserhatch)" stroke="var(--riser-line)" stroke-width="1"/>`);
       rect(xa,by,xb-xa,1.2*S,'var(--metal)','var(--metal-line)',{op:.6});
       txt(mx(52),by+1.2*S+13,`back cover riser ${r1(s.B)}, full F/T backplate`,{s:10,c:'var(--riser)'});}
     txt(mx(uL),back+(s.B>0?s.B*S+1.2*S+28:16),'G route per ET001G, Rosco method: routed out from the back to the 1/2 ceiling, back cover over it.',{s:10});
