@@ -266,7 +266,7 @@ footer ul{margin:6px 0 0;padding-left:18px}
 </section>
 
 <section class="panel">
-  <h2 style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Section at the centreline</span><label style="display:inline-flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-weight:500"><input type="checkbox" id="callouts"> depth callouts</label></h2>
+  <h2 style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Section at the centreline</span><span style="display:inline-flex;gap:14px"><label style="display:inline-flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-weight:500"><input type="checkbox" id="callouts"> depth callouts</label><label style="display:inline-flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-weight:500"><input type="checkbox" id="showmod" checked> module</label></span></h2>
   <div class="drawing"><svg id="svg" viewBox="0 0 1000 560" role="img" aria-label="Side view of the body with F and G saddle windows"></svg></div>
   <div class="legend"><span class="lw">Body section</span><span class="lr">Riser (Rosco part)</span><span class="lm">EverTune hardware</span><span class="lo">Saddle window, E strings</span><span class="lt">Target string height</span></div>
 </section>
@@ -316,7 +316,8 @@ const RULES={
   pitch:10.4,                              // ET: saddle pitch, average, saddles float
   spOut:[2.5,4.0],                         // RG: old bridge narrower, outer strings move OUT toward the fretboard edges. Total mm, ok / flag. Clayton OK 2026-10-30
   spIn:[4.5,6.0],                          // RG: old bridge wider, strings move IN (vintage Strat 56.4 lands at +4.4). Pole alignment, not edge risk
-  gReach:53.16,                           // ET: G hardware reaches 2.093" below the body top (ET001 G, limiting thickness for extremely thin guitars). Thinner body = modules stand proud of the back
+  gReach:53.3,                            // RG (Clayton's printed G back plate risers, 48.72 and 40 mm bodies): build the back up to 2.1" (53.3), EverTune's standard G thickness; the riser has a 1.27 recess the backplate drops into
+  gFloor:46.33,                           // ET: G route floor, 46.33 below the top (ET001G body route STEP). The module tails rest at it
   gStd:53.3,                               // ET: 2.1" or more = standard install, both back covers recessed
   depths:[{k:'TOP 2',d:25.4,top:true,note:'Main pocket, at least 25.4 into the body'},
           {k:'BOT 4',d:6.35,note:'F only'},
@@ -348,12 +349,13 @@ const fOf=n=>n===6?'F6':'F'+n;
 const autoTop=(model,H)=>MODELS[model].riser?clamp(half(H-RULES.fMid),0,RULES.topRiserMax):0;  // riser that centres the F window on the string
 const gOf=bz=>bz!=null&&bz>RULES.gLongAt?'GL':'G';
 // G on a thin body: hardware reaches gReach below the top, so it stands proud of the back by gReach - T. RG: riser plate under a full F/T backplate (Clayton's thin-body G).
-const gBack=(T,H)=>{const need=T<RULES.gReach?halfUp(RULES.gReach-T):0, gate=halfUp(Math.max(0,RULES.gateStack+0.05-T-H));return {need,gate,prot:Math.max(0,r2(RULES.gReach-T)),auto:Math.max(need,gate)};};
+const gBack=(T,H)=>{const need=T<RULES.gStd?Math.ceil((RULES.gStd-T)*10-1e-9)/10:0, gate=halfUp(Math.max(0,RULES.gateStack+0.05-T-H));return {need,gate,prot:Math.max(0,r2(RULES.gStd-T)),auto:Math.max(need,gate)};};
 function backOf(T,R,H){
   // Back of the body. d = design recess depth (BOT 2 small). Cut the footplate's own thickness so it sits flush,
   // unless that puts the footplate more than footTol off design. Whatever stands proud of the back face sets the back cover riser.
   const d=T+R-43.18, FT=RULES.footThk, tol=RULES.footTol;
-  let cut=Math.min(FT,d+tol); cut=Math.max(cut,Math.min(FT,d-tol)); cut=r2(Math.max(0,cut));
+  // thick body (flush would sit more than the 1 mm tolerance off design): route to design, footplate sits 43.18 from the top, recessed below the back face (ET BOT 2 small 1.700" from top)
+  let cut=d>FT+tol?d:Math.max(Math.min(FT,d+tol),Math.min(FT,d-tol)); cut=r2(Math.max(0,cut));
   const shim=(-d>tol)?r2(-d):0;                 // even at zero cut the footplate is too high: shim back to design
   const prot=r2(FT-cut+shim), need=prot>0.05?halfUp(prot):0, gate=halfUp(Math.max(0,RULES.gateStack+0.05-T-H));
   return {cut,shim,prot,need,gate,auto:Math.max(need,gate)};
@@ -456,9 +458,9 @@ function verdicts(s){
   let rc='ok',rp;
   if(s.fam==='G'){
     const g=s.gb;
-    if(s.T>=RULES.gReach){rp=s.T>=RULES.gStd?`Body <span class="num">${r1(s.T)}</span>, 53.3 or more: standard G install, both back covers recessed (G5X).`:`Body <span class="num">${r1(s.T)}</span> is under 53.3: route-through install, a full F/T backplate covers the back. Hardware just clears the back face, no riser.`;
+    if(s.T>=RULES.gStd){rp=`Body <span class="num">${r1(s.T)}</span>, 53.3 (2.1") or more: standard G install, both back covers recessed (G5X).`;
       if(s.B>0){rc='warn';rp+=` <span class="num">${r1(s.B)} mm</span> riser entered anyway, confirm intended.`;}}
-    else{rp=`Body <span class="num">${r1(s.T)}</span>: route-through, and the modules stand <span class="num">${r2(g.prot)} mm</span> proud of the back (G hardware reaches 53.16 below the top). Riser plate minimum <span class="num">${r1(g.need)} mm</span> under a full F/T backplate.${bAuto?'':` Yours <span class="num">${r1(s.B)}</span>.`}`;
+    else{rp=`Body <span class="num">${r1(s.T)}</span> is under 53.3 (2.1"): route-through. Build the back up to 53.3 with a riser plate, <span class="num">${r1(g.need)} mm</span> to the backplate seat, with a 1.27 recess the full F/T backplate drops into (print it ${r1(g.need+1.27)} thick). Clayton's 48.72 mm body riser: 4.61 + 1.27 = 5.88.${bAuto?'':` Yours <span class="num">${r1(s.B)}</span>.`}`;
       if(s.B<g.need){rc='bad';rp+=' Under the minimum.';} else if(s.B>RULES.rearRiserMax){rc='warn';rp+=' Over 6 mm, bulky on the back, client approval.';}}
   }
   else if(s.rearNeeded){
@@ -466,7 +468,7 @@ function verdicts(s){
     if(s.B<s.rearMin){rc='bad';rp+=' Under the minimum.';}
     else if(s.B>RULES.rearRiserMax){rc='warn';rp+=' Over 6 mm, bulky on the back, client approval.';}
   }else{
-    rp=`No riser. Footplate recess <span class="num">${r2(s.cut)} mm</span>, its own thickness, sits flush with the back face.`;
+    rp=s.cut>RULES.footThk+.01?`No riser. Footplate recess <span class="num">${r2(s.cut)} mm</span> deep (design, 43.18 from the top), footplate sits below the back face.`:`No riser. Footplate recess <span class="num">${r2(s.cut)} mm</span>, its own thickness, sits flush with the back face.`;
     if(s.B>0){rc='warn';rp+=` <span class="num">${r1(s.B)} mm</span> entered anyway, confirm intended.`;}
   }
   out.push({c:rc,h:'Back of the body',p:rp});
@@ -494,6 +496,7 @@ function sequence(s){
     add('BOT 1','Chamfer the pilots to 1/8" or more','','','So the finish does not crack');
     add('BOT 2','Space off the back with the two thin templates, on the four 1/16" bits');
     const fNote=s.shim>0?`Shim ${r2(s.shim)} mm, footplate stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`
+      :s.cut>RULES.footThk+.01?`Design depth, footplate sits 43.18 from the top, below the back face`
       :s.cut>=RULES.footThk?`Footplate's own thickness, sits flush, no riser`
       :s.cut>0?`Limited by the 1 mm tolerance, footplate stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`
       :`Footplate on the back face, stands ${r2(s.protrusion)} proud, back cover riser ${r1(s.B)}`;
@@ -520,7 +523,7 @@ function sequence(s){
     add('G3X','Rear guide route','through','through','Through the back into the top pocket');
     add('G4X','Back pocket: Forstner to about 5/8", dress flat','12.7',r2(T-12.7),'From the back. Rosco: route it all out to the main pocket, the back cover covers it');
     if(std) add('G5X','Back cover recess, G2/G2X and G3X/G4X stacked sideways as spacers','not published','','Body 53.3 or more: both back covers recessed');
-    else add('Back','Route-through install: no G5X recess',s.B>0?`riser ${r1(s.B)}`:'','',s.B>0?`Back cover riser ${r1(s.B)} mm (modules stand ${r2(s.gb.prot)} proud), full F/T backplate over it`:'Under 53.3: a full F/T backplate covers the back',{warn:true});
+    else add('Back','Route-through install: no G5X recess',s.B>0?`riser ${r1(s.B)}`:'','',s.B>0?`Riser plate ${r1(s.B)} mm to the backplate seat (print ${r1(s.B+1.27)} with the 1.27 backplate recess), full F/T backplate in it`:'Under 53.3: a full F/T backplate covers the back',{warn:true});
     add('Install','Ground wire between faceplate and top. Bridge in on the two bolts');
     add('Install','Foot plate, back plates');
   }
@@ -556,7 +559,7 @@ function sheet(s,vs){
     ['Footplate shim',s.shim>0?`<span class="big">${r2(s.shim)} mm</span>`:'None'],
     ['Back cover riser',s.B>0?`<span class="big">${r1(s.B)} mm</span> thick, the length of the backplate, window for the footplate`:'None']]
     :[['Top riser','None on a G'],['Back cover',s.T>=RULES.gStd?'Recessed G back covers (G5X). Standard install.':'Route-through: full F/T backplate'],
-      ['Back cover riser',s.B>0?`<span class="big">${r1(s.B)} mm</span> thick, under the full backplate`:'None']];
+      ['Back cover riser',s.B>0?`<span class="big">${r1(s.B)} mm</span> to the backplate seat, print ${r1(s.B+1.27)} with the 1.27 backplate recess`:'None']];
   const flags=vs.filter(v=>v.c==='bad'||v.c==='warn');
   const id=r=>`done-${s.fam}-${s.seq.indexOf(r)}`;
   $('sheet').innerHTML=`<div class="sh">
@@ -573,6 +576,23 @@ function sheet(s,vs){
   </div>`;
 }
 
+// One EverTune module, side view: Clayton's module line art traced to vector (image px, 2576 wide), saddle triangle left out (the drawn saddle is it).
+// Scale 0.059 mm/px from Clayton's Shaper Trace of a real module (141.9 long tail to head, 55.1 bottom rail to saddle peak; the line art's proportions match within 0.5%). F: tail bottom on the footplate top, rotated about the tail so the saddle peak meets the string
+// (the line art is within 1 deg of that, zero interference with the F7 routes). G: the same, with the tail bottom on the G footplate line,
+// 53.16 below the top (ET001 G thin-guitar limit is measured to it); string tension presses the tail down onto it (Clayton). RG drawing aid.
+const MOD={k:0.059, bot:[162,1110], peak:[1782,172], d:"M2166 379 2164 384 2164 472 2160 474 2056 493 1714 561 1695 561 1676 553 1663 540 1658 528 1647 465 1642 455 1655 532 1662 546 1677 559 1695 565 1714 565 2164 477 2168 475 2168 403ZM2491 549 2483 533 2471 524 2465 522 2414 522 2402 518 2394 509 2390 498 2390 412 2388 404 2381 391 2374 384 2365 379 2347 376 2348 370 2370 370 2371 347 2369 345 2113 334 2113 341 2363 352 2364 362 2359 364 2110 353 1890 392 1740 422 1721 422 1712 428 1709 440 1648 440 1516 481 1513 486 1520 523 1519 529 1386 554 1385 560 1397 620 1395 624 236 847 233 841 229 839 152 839 148 829 110 830 91 835 86 842 86 955 89 962 109 968 110 977 108 983 102 989 93 992 88 997 90 1105 99 1109 124 1112 227 1112 231 1110 237 1102 240 1108 247 1112 2158 1111 2158 1092 2152 1084 2125 1082 2147 1078 2165 1079 2180 1086 2196 1102 2205 1103 2242 1085 2279 1085 2303 1081 2323 1074 2342 1064 2360 1050 2375 1034 2394 1003 2401 984 2406 959 2406 933 2401 920 2329 817 2328 767 2335 760 2353 760 2357 780 2362 789 2369 796 2389 806 2419 817 2425 814 2429 799 2427 793 2395 781 2382 771 2380 764 2380 697 2463 695 2474 690 2483 682 2491 665ZM246 1092 760 1090 2147 1090 2151 1093 2152 1103 247 1104ZM227 970 229 973 228 1103 225 1105 124 1105 97 1101 95 1001 100 999 127 1002 176 1002 183 997 185 985 187 983ZM117 968 137 970 136 999 104 996 114 986ZM144 969 157 967 157 979 160 985 165 988 178 986 178 992 171 996 145 996ZM187 965 189 970 187 977 171 982 165 980 164 972 166 970 183 964ZM196 960 200 962 199 966 202 969 200 973 196 971 194 964ZM2103 1082 2096 1084 248 1083 241 1086 237 1096 236 1014 286 1013 290 1029 300 1037 751 1038 1911 1033 1935 1031 1962 1021 2047 958 2060 984 2048 991 2040 999 2038 1008 2057 1054 2063 1064 2072 1072 2088 1079ZM274 926 273 932 265 938 241 943 235 942 236 933 250 932ZM304 909 309 914 314 926 336 1031 304 1031 300 1029 295 1023 293 1010 288 1006 236 1005 236 968 272 961 287 953 295 941 300 916ZM2137 892 2158 934 2112 958 2095 923ZM208 958 217 955 220 952 263 944 273 940 279 932 283 910 289 898 298 891 311 892 321 901 329 918 339 958 351 1024 348 1027 342 1027 339 1023 320 928 313 910 307 904 299 906 295 915 290 939 286 946 278 953 251 960 217 965 212 969 209 965ZM2303 885 2351 986 2352 999 2349 1012 2343 1022 2333 1031 2286 1056 2203 1096 2200 1096 2185 1081 2169 1073 2148 1071 2126 1075 2101 1075 2083 1070 2068 1059 2045 1009 2045 1003 2053 995 2063 989 2065 993 2072 995 2093 988 2113 974 2117 962 2161 940 2164 943 2175 943 2193 937 2214 924 2219 919 2222 909 2262 889 2295 880 2299 881 2282 897 2080 998 2062 1004 2048 1005 2047 1008 2059 1008 2077 1003 2282 901 2301 884ZM236 854 246 854 247 865 252 872 257 873 276 869 276 914 274 918 245 926 235 925ZM93 844 98 843 115 846 226 846 228 848 228 943 215 947 198 949 190 953 175 951 173 952 173 956 177 957 178 960 162 959 120 962 95 957 93 954ZM115 838 123 836 144 837 143 839ZM2363 695 2374 696 2375 772 2382 782 2420 798 2421 801 2418 809 2378 793 2364 778 2361 764ZM2116 695 2353 695 2355 697 2355 752 2332 754 2323 761 2321 766 2321 815 2326 826 2395 924 2399 934 2400 946 2394 983 2380 1014 2367 1032 2350 1049 2331 1062 2298 1075 2279 1078 2259 1077 2338 1036 2348 1027 2358 1007 2359 997 2356 980 2307 879 2302 874 2281 877 2259 884 2218 904 2114 698ZM1959 669 1963 671 2110 966 2110 969 2106 974 2082 987 2071 990 2067 986 1920 690 1922 687ZM2043 683 2074 668 2081 679 2090 688 2108 696 2216 912 2210 920 2199 928 2186 934 2168 938 2163 932 2041 687ZM2043 949 2039 955 1958 1015 1938 1023 1909 1026 847 1031 355 1030 359 1021 359 966 360 965 362 968 375 1018 383 1025 391 1025 398 1020 400 1015 402 957 412 997 418 1012 427 1018 436 1016 439 1013 442 1004 443 948 457 999 461 1006 466 1009 477 1008 483 999 485 941 497 987 503 999 509 1002 515 1002 523 996 526 979 526 934 536 971 543 989 550 994 557 994 564 988 567 978 567 925 582 977 585 982 591 986 599 986 603 984 607 977 608 918 623 968 630 977 641 978 647 973 649 968 650 911 665 962 673 970 683 970 686 968 691 956 691 903 708 957 713 962 725 962 730 957 732 951 732 893 746 942 750 950 757 955 766 954 772 946 773 887 783 922 791 942 798 947 804 947 812 941 814 934 814 879 830 932 835 938 844 939 850 935 852 930 852 872 861 906 869 927 876 932 884 932 888 930 893 921 893 864 902 897 910 918 917 924 922 925 928 923 934 912 934 856 947 901 954 914 961 917 967 916 973 911 975 906 975 849 993 903 999 908 1008 908 1014 904 1017 895 1016 840 1035 896 1040 900 1047 901 1052 899 1058 890 1057 831 1066 863 1076 888 1081 892 1089 893 1097 887 1099 881 1098 824 1117 880 1121 884 1132 885 1138 880 1140 875 1139 817 1152 860 1158 873 1164 877 1173 877 1178 874 1181 867 1180 809 1198 863 1204 869 1211 870 1217 868 1222 860 1221 803 1239 856 1248 862 1256 861 1261 857 1263 852 1262 794 1279 846 1287 854 1298 853 1303 848 1305 842 1302 795 1303 786 1316 828 1322 841 1326 845 1336 846 1344 839 1344 779 1363 833 1372 839 1379 838 1383 835 1386 829 1387 820 1384 783 1385 770 1403 824 1408 829 1413 831 1419 830 1424 827 1427 821 1428 800 1425 772 1426 763 1444 815 1453 823 1461 822 1467 817 1469 810 1466 765 1467 754 1486 809 1494 815 1501 815 1508 810 1510 805 1508 747 1524 794 1528 802 1537 807 1546 805 1551 796 1549 741 1568 793 1576 799 1582 799 1589 795 1592 785 1589 732 1609 785 1617 791 1628 789 1633 781 1633 756 1629 730 1630 723 1648 773 1651 778 1658 783 1668 782 1674 773 1671 717 1690 767 1696 774 1701 776 1711 773 1715 767 1716 757 1711 714 1712 709 1733 761 1740 766 1749 766 1753 764 1757 757 1758 746 1752 706 1753 703 1775 753 1783 758 1791 757 1796 753 1798 748 1798 728 1793 700 1794 695 1815 740 1823 748 1832 749 1839 743 1842 730 1829 641 1845 659 1852 659 1869 650 1893 695 1901 696 1914 691ZM1608 639 1604 643 1602 649 1603 679 1606 701 1605 709 1585 651 1577 645 1571 645 1564 650 1562 655 1562 676 1566 713 1565 719 1545 659 1538 653 1529 653 1524 657 1522 662 1524 725 1507 671 1498 661 1492 660 1486 662 1481 670 1481 698 1484 723 1483 733 1464 675 1455 668 1448 669 1442 674 1440 680 1440 703 1443 731 1442 741 1423 682 1415 676 1404 678 1399 689 1401 749 1388 704 1382 690 1375 684 1364 685 1358 695 1361 758 1359 756 1343 701 1337 693 1329 691 1324 693 1318 702 1320 765 1304 712 1298 702 1292 699 1287 699 1280 703 1277 710 1278 771 1262 718 1258 711 1252 707 1241 709 1236 718 1237 778 1224 733 1216 717 1212 715 1203 715 1199 718 1196 724 1196 785 1188 755 1177 726 1168 722 1159 725 1155 731 1154 740 1157 787 1156 796 1137 736 1131 731 1122 731 1116 736 1113 749 1115 803 1097 745 1089 738 1082 738 1076 742 1073 750 1074 810 1058 756 1051 747 1040 746 1033 753 1033 818 1015 760 1008 754 1000 754 996 756 991 766 992 827 976 772 970 763 963 761 953 766 950 776 951 834 935 780 929 771 919 769 911 775 909 781 910 842 893 785 887 778 878 777 871 782 869 787 869 849 853 794 850 789 844 785 833 787 828 794 827 843 813 798 809 794 803 792 797 793 792 797 789 806 790 864 775 812 769 802 759 800 754 802 750 808 749 871 732 814 728 809 722 807 713 810 708 820 708 880 696 836 690 821 685 816 676 816 672 818 667 826 667 888 655 844 649 829 643 824 634 824 628 829 626 835 626 896 609 838 603 832 592 832 588 835 585 842 585 906 571 853 567 844 560 839 549 841 544 851 544 912 529 857 520 847 510 848 503 858 502 919 488 865 485 859 477 854 466 857 462 864 461 926 446 870 443 865 437 862 428 864 422 872 420 888 420 934 418 932 405 878 398 870 390 870 386 872 381 879 378 943 367 893 363 883 359 879 348 878 340 886 337 926 327 900 317 889 311 886 297 886 290 889 284 896 283 895 283 869 286 867 1423 647 1595 638ZM1621 637 1644 637 1643 661 1647 696 1646 702 1628 648 1620 639ZM1666 635 1681 634 1683 636 1683 657 1688 692 1687 695ZM1708 633 1723 633 1724 658 1728 682 1727 687 1707 635ZM1404 643 311 856 255 865 252 855 256 851 696 767 1381 633 1397 631ZM1761 622 1763 624 1763 640 1769 678 1768 681 1748 630 1750 626ZM1987 616 2022 686 2025 689 2031 689 2034 687 2037 689 2133 883 2132 887 2093 916 2089 914 1967 669 1967 666 1982 656 1985 651 1974 625ZM1804 606 1806 607 1805 621 1813 678 1812 683 1790 624 1785 615 1788 612ZM1853 651 1850 654 1847 654 1840 647 1822 618 1821 628 1837 727 1836 739 1832 743 1826 744 1816 732 1808 716 1780 646 1774 636 1774 644 1783 668 1794 736 1792 750 1788 753 1783 753 1778 748 1771 734 1742 658 1734 644 1735 655 1743 675 1751 725 1752 757 1748 761 1741 761 1735 755 1699 659 1694 653 1694 661 1702 682 1709 731 1710 765 1706 770 1700 770 1694 764 1658 664 1654 660 1661 687 1669 750 1669 772 1663 778 1659 778 1650 765 1628 699 1615 667 1614 675 1621 697 1629 767 1628 781 1623 786 1616 785 1612 780 1579 682 1574 675 1574 684 1580 703 1587 766 1587 787 1581 794 1574 792 1571 788 1539 691 1534 683 1533 690 1540 714 1546 779 1545 798 1540 802 1535 801 1529 793 1498 697 1494 690 1493 699 1499 719 1505 778 1505 804 1498 810 1494 809 1487 799 1457 706 1452 699 1452 707 1458 730 1464 787 1464 810 1462 815 1457 818 1453 817 1446 807 1417 715 1412 706 1411 714 1416 730 1423 797 1422 820 1416 826 1410 824 1405 816 1375 720 1371 714 1370 722 1376 741 1382 810 1382 825 1377 833 1371 833 1364 823 1338 739 1330 721 1329 728 1335 749 1340 803 1340 835 1334 841 1328 840 1323 832 1295 740 1290 729 1289 739 1294 756 1300 829 1299 844 1296 848 1291 850 1286 847 1282 840 1252 742 1248 737 1248 747 1253 766 1258 820 1258 850 1252 857 1248 857 1243 852 1239 843 1213 754 1208 745 1207 751 1212 770 1217 824 1217 859 1211 865 1208 865 1203 861 1198 850 1173 764 1167 753 1166 760 1172 781 1177 847 1176 867 1169 873 1162 869 1157 858 1132 772 1127 761 1125 761 1125 768 1131 791 1135 840 1135 874 1130 880 1123 879 1119 873 1093 785 1086 768 1084 772 1090 796 1094 847 1094 879 1092 885 1088 888 1084 888 1077 879 1049 783 1045 777 1044 784 1049 803 1053 856 1053 889 1051 893 1046 896 1039 892 1035 884 1007 789 1003 784 1003 794 1008 811 1012 864 1012 895 1010 900 1004 904 997 899 993 890 969 804 963 792 962 800 967 819 971 872 970 907 964 912 959 911 953 902 927 810 921 799 920 806 926 829 929 871 929 913 924 919 918 919 912 910 886 817 881 808 880 814 885 837 888 885 888 919 883 927 877 927 871 919 847 832 840 815 839 824 844 843 847 885 847 929 843 934 838 934 835 931 809 838 802 823 801 831 806 850 809 890 809 935 803 942 799 942 794 937 791 930 766 839 762 830 760 835 765 854 768 904 768 940 766 947 762 950 756 949 750 938 723 841 720 838 719 844 724 864 727 907 727 951 722 958 717 958 709 947 690 876 679 845 678 854 683 873 686 923 685 960 681 965 673 964 668 955 641 857 638 854 637 861 642 882 645 957 644 967 642 971 637 974 632 972 627 964 598 861 596 868 601 887 603 920 603 974 598 981 592 981 585 970 560 876 556 869 555 878 560 898 562 939 562 978 560 985 556 989 551 989 547 985 543 976 520 886 515 877 514 883 517 893 519 913 521 977 519 993 514 997 508 996 504 991 479 896 474 885 473 894 477 910 479 943 479 993 477 1001 471 1005 467 1004 461 995 438 904 433 892 432 900 436 917 438 987 436 1008 430 1013 425 1012 419 1002 394 903 391 900 391 911 395 931 396 1008 395 1014 390 1020 384 1020 378 1011 355 918 350 907 349 912 354 944 354 1004 352 1004 343 953 343 896 345 887 350 883 356 883 361 891 376 961 384 991 386 993 384 898 386 880 391 875 396 875 401 882 424 978 428 986 425 893 427 874 433 867 441 872 444 880 464 966 469 978 466 873 468 864 474 859 481 863 486 876 510 971 507 869 509 856 514 852 519 853 525 862 546 945 552 962 549 903 549 852 551 847 555 844 560 845 566 855 593 955 590 844 597 836 601 837 606 844 628 928 635 947 630 844 632 833 638 828 644 831 648 839 672 930 676 939 672 873 672 827 680 820 685 823 689 831 714 925 718 931 713 866 713 822 718 813 724 813 729 820 755 917 759 923 754 855 754 812 760 805 765 806 771 816 799 916 794 811 796 801 801 797 806 798 812 808 838 908 832 810 833 796 838 790 843 790 849 798 872 885 878 901 873 796 874 788 879 782 883 782 890 792 914 880 920 893 914 810 915 779 920 774 925 775 931 784 957 878 961 885 955 778 957 770 963 766 971 773 997 865 1002 877 996 789 996 768 1001 759 1007 759 1013 768 1033 841 1043 870 1037 786 1037 758 1043 751 1047 751 1052 756 1055 763 1078 847 1084 862 1078 782 1078 750 1083 743 1089 744 1094 751 1120 842 1125 854 1119 780 1119 742 1123 736 1129 736 1134 741 1166 846 1160 764 1160 733 1166 727 1171 728 1175 732 1198 813 1207 838 1200 740 1201 725 1205 720 1211 720 1218 731 1239 807 1248 831 1241 747 1241 719 1246 712 1251 712 1256 717 1289 824 1282 740 1282 710 1288 704 1294 705 1298 711 1326 807 1330 814 1323 735 1323 703 1329 696 1334 697 1338 702 1365 793 1371 807 1363 711 1363 698 1368 689 1374 689 1381 700 1401 769 1412 800 1404 707 1404 689 1409 681 1416 682 1421 690 1453 792 1454 785 1445 703 1445 680 1451 673 1456 674 1461 681 1492 780 1495 783 1486 696 1486 670 1492 665 1497 666 1502 672 1534 774 1536 775 1526 671 1527 662 1531 658 1537 658 1543 666 1572 759 1577 768 1567 675 1567 656 1572 650 1577 650 1583 658 1602 720 1617 760 1618 756 1607 663 1607 650 1611 643 1619 644 1624 652 1649 730 1658 752 1659 747 1648 664 1648 640 1651 636 1658 636 1663 642 1690 723 1700 744 1687 644 1688 634 1700 633 1702 635 1734 723 1741 737 1729 655 1729 631 1739 629 1744 631 1766 693 1782 728 1769 649 1767 621 1778 616 1781 617 1811 696 1824 721 1810 625 1810 609 1814 604 1819 602 1823 603 1832 611ZM1828 597 1839 593 1843 594 1867 644 1866 647 1860 650 1858 649 1843 618 1836 607 1827 599ZM1962 567 1969 577 1952 584 1947 574ZM2071 663 2028 684 1991 611 1992 598 1989 590 1982 582 1975 578 1969 564 1966 561 1962 561 1942 569 1940 573 1950 592 1962 585 1973 584 1981 588 1985 593 1987 605 1984 612 1980 616 1966 623 1980 650 1968 659 1907 689 1898 691 1895 689 1851 600 1848 590 1958 548 1969 545 1981 545 1995 551 2002 558ZM2484 554 2484 663 2482 670 2476 679 2466 686 2459 688 2108 688 2096 683 2088 676 2008 553 1996 543 1979 537 1971 537 1956 541 1778 609 1732 624 1442 640 1414 640 1406 633 1393 561 1395 559 1526 535 1528 534 1528 526 1521 491 1522 487 1648 447 1720 447 1722 457 1755 457 2095 390 2100 387 2101 374 2349 384 2365 387 2377 398 2382 410 2383 500 2389 515 2398 524 2407 528 2466 530 2479 540ZM2096 375 2096 383 2093 386 1749 454 1723 454 1724 447 1743 445ZM2094 361 2094 366 2092 368 2077 372 1735 439 1718 439 1719 428 1721 425 1729 430 1743 429 2092 360ZM2100 360 2339 370 2340 376 2102 367 2100 365Z"};
+MOD.pts=(()=>{const n=MOD.d.match(/-?\d+(\.\d+)?/g).map(Number),o=[];for(let i=0;i<n.length;i+=2)o.push([n[i],n[i+1]]);return o;})();
+function modXf(s,o){
+  const {S,mx,y0,back,m}=o, sc=MOD.k*S;
+  const Hs=s.H, Ty=m==='F'?back-s.cut*S+s.shim*S:y0+(RULES.gFloor-.5)*S, lift=0;   // tail pressed down by string tension: F onto the footplate, G onto the route floor (46.33, ET001G STEP), 0.5 clear
+  const dy=Ty-(y0-Hs*S), L=Math.hypot(MOD.peak[0]-MOD.bot[0],MOD.peak[1]-MOD.bot[1])*sc, dx=Math.sqrt(Math.max(0,L*L-dy*dy));
+  const tx=mx(0)-dx, ty=Ty-lift, th=Math.atan2(-dy,dx)-Math.atan2(MOD.peak[1]-MOD.bot[1],MOD.peak[0]-MOD.bot[0]);
+  const c=Math.cos(th),sn=Math.sin(th);
+  return {tx,ty,th,sc,pt:p=>{const x=(p[0]-MOD.bot[0])*sc,y=(p[1]-MOD.bot[1])*sc;return [tx+c*x-sn*y,ty+sn*x+c*y];}};
+}
+function drawModule(g,x){
+  g.push(`<g transform="translate(${x.tx.toFixed(1)} ${x.ty.toFixed(1)}) rotate(${(x.th*180/Math.PI).toFixed(2)}) scale(${x.sc.toFixed(4)}) translate(${-MOD.bot[0]} ${-MOD.bot[1]})"><path d="${MOD.d}" fill="var(--metal-line)" fill-rule="evenodd" opacity=".9"/></g>`);
+}
 function draw(s){
   // Section: x axis is distance AHEAD of the scale line (toward the nut) in mm, drawn right to left. Depths to scale. F pocket lengths from ET001 F7 Body Route Dimensions; G lengths schematic.
   const callouts=$('callouts').checked, n=s.n;
@@ -592,14 +612,20 @@ function draw(s){
   const uL=112, uR=-72; // drawn extent ahead / behind the scale line
   txt(mx(uL),30,`${s.M.name} model`,{s:26,w:600,c:'var(--accent)'});txt(mx(uL),50,'section at the centreline, nut to the left',{s:12});
   // body with pockets (evenodd)
+  const mxf=modXf(s,{S,mx,y0,back,m});
+  // G: top pocket opening has to clear the module heads (RG, derived from the module, confirm on the bench). Never less than 8 ahead.
+  // routes below: F, T and G outlines at the centreline are cut from EverTune's ET001F / ET001T / ET001G body route STEP files (2017e01)
   let d=`M${mx(uL)} ${y0} H${mx(uR)} V${back} H${mx(uL)} Z `;
-  if(m==='F'){
-    d+=`M${mx(101.6)} ${back} V${clampY(ft+21.6*S)} H${mx(60.3)} V${clampY(ft+6.35*S)} H${mx(19.1)} L${mx(6.4)} ${clampY(ft+1.8*S)} V${y0} H${mx(-54.6)} V${clampY(ft+25.4*S)} H${mx(-58.4)} V${back} Z `; // one outline, ET001 F7 body route 2017e01 read 2026-10-30: BOT 3 101.6 to 60.3 ahead at 21.6, BOT 4 web to 19.1 at 6.35, chamfer to 1.8 at 6.4 ahead (TOP 2 front edge), TOP 2 rear wall 54.6 behind down to 25.4, BOT 2 large rear wall 58.4 behind
-    if(s.cut>0) d+=`M${mx(101.6)} ${back} V${back-s.cut*S} H${mx(76.2)} V${back} Z `;                        // footplate recess (ears)
+  if(m==='F'&&s.tele){
+    d+=`M${mx(101.6)} ${back} V${clampY(ft+21.59*S)} H${mx(64.9)} V${y0} H${mx(-54.61)} V${clampY(ft+25.4*S)} H${mx(-58.42)} V${back} Z `; // T: no BOT 4 web, open from the top from 64.9 ahead (ET001T STEP)
+  }else if(m==='F'){
+    d+=`M${mx(101.6)} ${back} V${clampY(ft+21.6*S)} H${mx(60.3)} V${clampY(ft+6.35*S)} H${mx(19.1)} L${mx(6.4)} ${clampY(ft+1.8*S)} V${y0} H${mx(-54.6)} V${clampY(ft+25.4*S)} H${mx(-58.4)} V${back} Z `; // one outline, ET001 F7 body route 2017e01 read 2026-10-30: BOT 3 101.6 to 60.3 ahead at 21.6, BOT 4 web to 19.1 at 6.35, chamfer to 1.8 at 6.4 ahead (TOP 2 front edge), TOP 2 rear wall 54.6 behind down to 25.4, BOT 2 large rear wall 58.4 behind (Clayton confirmed the step 2026-10-30)
+    // footplate recess ears sit at the cavity corners, off the centreline: inside the open BOT 3 cavity here, so not drawn as a separate cut
   }else{
-    d+=`M${mx(101.6)} ${back} V${clampY(y0+12.7*S)} H${mx(8)} V${y0} H${mx(-42)} V${back} H${mx(-6)} V${clampY(y0+46*S)} H${mx(8)} V${back} Z `; // Rosco method (Clayton 2026-10-30): back pocket routed out from the back to 1/2" from the top (G4X depth, ET) all the way to the main pocket, back cover over it. No second step. EverTune's default instead routes from the top with a 1/2" ledge on the nut side and only a small oval back cover recess on the back.
+    d+=`M${mx(97.79)} ${back} V${clampY(y0+12.7*S)} H${mx(50.8)} V${y0} H${mx(-57.15)} V${clampY(back-2.03*S)} H${mx(-60.33)} V${back} Z `; // ET001G STEP: ceiling 12.7 from 97.79 to 50.8 ahead, top opening 50.8 ahead to 57.15 behind, back cover recess 2.03 to 60.33 behind. Rosco method: the 46.33 floor routed out from the back, back cover over it (EverTune leaves the floor and chisels the undercut from the top)
   }
   g.push(`<path d="${d}" fill="url(#wood)" stroke="var(--wood-line)" stroke-width="1.2" fill-rule="evenodd"/>`);
+  if($('showmod').checked) drawModule(g,mxf);
   txt(mx(uL)+6,back-6,`body ${r1(T)}`,{c:'var(--ink)',s:11});
   // hardware, side elevation. Profiles traced from ET001 F&T and ET001 G Overall Dimensions (2017e01, full scale): u = mm ahead of the scale line, h = mm up from the mounting face.
   // F: faceplate 10.3 ahead (F model front) to 58.2 behind, saddle floor 5.6, housing 13.0. T adds the Tele plate from 70.5, 2.8 tall, with the bridge pickup. G: frame 13.7 ahead to 60.7 behind, housing 23.1.
@@ -673,13 +699,13 @@ function draw(s){
       txt(mx(-58.4)-4,y0+14,'through',{s:10,a:'end'});
     }
   }else{
-    if(callouts){txt(mx(-42)-4,clampY(y0+46*S)-5,`G2X floor 46${46>T?' (through)':''}`,{s:10,a:'end'});for(const [dd,k] of [[12.7,'back pocket 12.7']]){line(mx(uL)-4,y0+dd*S,mx(uL)-18,y0+dd*S,'var(--metal-line)');txt(mx(uL)-22,y0+dd*S+4,k,{s:10,a:'end'});}}
+    if(callouts){for(const [dd,k] of [[12.7,'ceiling 12.7']]){line(mx(uL)-4,y0+dd*S,mx(uL)-18,y0+dd*S,'var(--metal-line)');txt(mx(uL)-22,y0+dd*S+4,k,{s:10,a:'end'});}}
     if(s.bz!=null){line(mx(s.bz),y0-30*S,mx(s.bz),y0,'var(--warn)','4 3',1.5);txt(mx(s.bz)-4,y0-30*S+10,'pickup bezel',{s:10,a:'end',c:'var(--warn)'});}
     if(s.B>0){const xa=mx(104),xb=mx(-64),rh=s.B*S,by=back+rh;
       g.push(`<path d="M${xa} ${back} H${xb} V${by} H${xa} Z" fill="url(#riserhatch)" stroke="var(--riser-line)" stroke-width="1"/>`);
       rect(xa,by,xb-xa,1.2*S,'var(--metal)','var(--metal-line)',{op:.6});
       txt(mx(52),by+1.2*S+13,`back cover riser ${r1(s.B)}, full F/T backplate`,{s:10,c:'var(--riser)'});}
-    txt(mx(uL),back+(s.B>0?s.B*S+1.2*S+28:16),'G cutout, Rosco method: back pocket routed out to 1/2 from the top, back cover over it. G body 53.2 (thin) to 60.9 (typical).',{s:10});
+    txt(mx(uL),back+(s.B>0?s.B*S+1.2*S+28:16),'G route per ET001G, Rosco method: routed out from the back to the 1/2 ceiling, back cover over it.',{s:10});
   }
   // scale line and string
   line(X0,62,X0,back+34,'var(--mute)','2 3');txt(X0+4,58,'scale line',{s:10});
@@ -710,7 +736,7 @@ function run(){const s=calc();
   $('r').disabled=$('rAuto').disabled=!s.M.riser; $('rAuto').setAttribute('aria-pressed',String(rAuto||!s.M.riser));
   $('bAuto').setAttribute('aria-pressed',String(bAuto));
   $('rHint').textContent=s.M.riser?'Only what stands proud of the body top. Max 6.':s.tele?'Not used on a T, the plate wraps the bridge pickup.':'Not used on a G for now.';
-  $('bHint').textContent=s.fam==='F'?'How far the footplate stands proud of the back. Over 6 needs client OK.':'G under 53.2: modules stand proud of the back. Riser plate under a full F/T backplate.';
+  $('bHint').textContent=s.fam==='F'?'How far the footplate stands proud of the back. Over 6 needs client OK.':'G under 53.3 (2.1"): riser plate builds the back up to 53.3, full backplate in a 1.27 recess.';
   // spacing hint, flagged as soon as it is typed
   const sh=$('spHint');
   if(s.sp==null){sh.className='hint';sh.textContent=`Old bridge, centre to centre. The ${s.M.name} is about ${r1(s.et)}.`;}
@@ -732,7 +758,7 @@ $('bAuto').addEventListener('click',()=>{bAuto=true;run();});
 $('reset').addEventListener('click',reset);
 $('modelNote').addEventListener('click',e=>{if(e.target.id==='backRec')reset();});
 ['h','act','t','sp','bz','job','client','guitar','oldb'].forEach(id=>$(id).addEventListener('input',run));
-['finish','hand','callouts'].forEach(id=>$(id).addEventListener('change',run));
+['finish','hand','callouts','showmod'].forEach(id=>$(id).addEventListener('change',run));
 $('print').addEventListener('click',()=>{run();window.print();});
 window.addEventListener('beforeprint',run);
 // Prefill from the URL, the hook for the Airtable job link later: ?job=J273&client=...&guitar=...&n=7&h=11&t=42&sp=64.5
