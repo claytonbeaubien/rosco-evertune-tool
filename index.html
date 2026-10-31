@@ -620,6 +620,11 @@ function modXf(s,o){
   if(low>lim) ty-=low-lim;
   return {tx,ty,th,sc,pt:p=>{const x=(p[0]-MOD.bot[0])*sc,y=(p[1]-MOD.bot[1])*sc;return [tx+c*x-sn*y,ty+sn*x+c*y];}};
 }
+// the module's own saddle, one solid triangle from the same line art, drawn over the faceplate with its peak on the string at the scale line
+MOD.saddle="M1702 446 1712 438 1718 437 1721 425 1729 430 1737 430 2092 360 2094 361 2094 366 2099 365 2102 359 2102 352 2099 348 2102 333 2097 331 2095 322 2087 308 2071 296 1790 170 1774 171 1760 181 1754 193 1711 437 1709 440 1703 440Z";
+function drawSaddle(g,x,ok){
+  g.push(`<g transform="translate(${x.tx.toFixed(1)} ${x.ty.toFixed(1)}) rotate(${(x.th*180/Math.PI).toFixed(2)}) scale(${x.sc.toFixed(4)}) translate(${-MOD.bot[0]} ${-MOD.bot[1]})"><path d="${MOD.saddle}" fill="${ok?'var(--metal)':'var(--bad-soft)'}" stroke="${ok?'var(--metal-line)':'var(--bad)'}" stroke-width="1.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></g>`);
+}
 function drawModule(g,x){
   g.push(`<g transform="translate(${x.tx.toFixed(1)} ${x.ty.toFixed(1)}) rotate(${(x.th*180/Math.PI).toFixed(2)}) scale(${x.sc.toFixed(4)}) translate(${-MOD.bot[0]} ${-MOD.bot[1]})"><path d="${MOD.d}" fill="var(--metal-line)" fill-rule="evenodd" opacity=".9"/></g>`);
 }
@@ -691,7 +696,8 @@ function draw(s){
   const w=RULES.win[m].map(v=>v+(m==='F'?R:0)), inW=s.H>=w[0]&&s.H<=w[1];
   const seatH=u=>m==='F'?R+5.6:9.3+(2.7-u)*(2/28.1), sL=m==='F'?19:17.5, sk=.22, Ht=s.H;
   const sp=[[.8,seatH(.8)],[.8,Ht-.9],[.4,Ht-.25],[-.2,Ht],[-(sL-1.2),Ht-sk*(sL-1)],[-(sL-.3),Ht-sk*(sL-1)-.6],[-sL,Ht-sk*(sL-1)-1.4],[-sL,seatH(-sL)]].map(([u,h])=>[u,Math.max(h,seatH(u))]);
-  poly(sp.map(([u,h])=>[mx(u),y0-h*S]),inW?'var(--metal)':'var(--bad-soft)',inW?'var(--metal-line)':'var(--bad)',{w:1.2});
+  if($('showmod').checked) drawSaddle(g,mxf,inW);   // module on: its own saddle triangle, connected to the module
+  else poly(sp.map(([u,h])=>[mx(u),y0-h*S]),inW?'var(--metal)':'var(--bad-soft)',inW?'var(--metal-line)':'var(--bad)',{w:1.2});
   // window band just ahead of the saddle
   const wy1=y0-w[1]*S, wy2=y0-w[0]*S;
   rect(mx(9),wy1,6*S,wy2-wy1,'var(--ok-soft)','var(--ok)',{op:.9});line(mx(9),(wy1+wy2)/2,mx(3),(wy1+wy2)/2,'var(--ok)','3 2',1.5);
